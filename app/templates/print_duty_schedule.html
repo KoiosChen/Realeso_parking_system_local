@@ -1,0 +1,309 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+
+
+
+{% block page_content %}
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="update" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title" id="myModalLabel">值班表调整</h4>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <input type="hidden" name="checked_month" id="checked_month">
+                <p>日期 <input type="text" name="intraday" id="intraday" readonly="true" style="border-style:none"/></p>
+                <p>
+                    <select name="duty_attended_time" id="duty_attended_time" class="form-control">
+                        <option value="0" id="selected_title">====请选择值班时间====</option>
+                    </select>
+                </p>
+                <p>
+                    <select name="duty_engineer" id="duty_engineer" class="form-control">
+                        <option value="0">====请先选择值班时间====</option>
+                    </select>
+                </p>
+                <p>
+                    <select name="action" id="action" class="form-control">
+                        {% for s in duty_schedule_status %}
+                            <option value="{{ s }}">{{ duty_schedule_status[s] }}</option>
+                        {% endfor %}
+                    </select>
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" onclick="update()">提交更改</button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal -->
+</div>
+<!-- 模态框（Modal）end -->
+
+<div class="page-header">
+    <h1>值班表查询</h1>
+    <select name="select_month" id="select_month" class="form-control" style="width: 200px;">
+        <option value="0">===请选择查询的月份===</option>
+        {% for month in range(1, 13) %}
+            <option value="{{ month }}">{{ month }}</option>
+        {% endfor %}
+    </select>
+</div>
+<div class="page-content" id="print_table">
+</div>
+
+
+{% raw %}
+<script id="duty_time_option" type="text/x-jquery-tmpl">
+    <option value=${t0}>${t0}</option>
+    <option value=${t1}>${t1}</option>
+    <option value=${t2}>${t2}</option>
+    <option value=${t3}>${t3}</option>
+</script>
+<script id="print_title" type="text/x-jquery-tmpl">
+    <table class="table" id="duty_table">
+        <thead id="title_head" style="color:saddlebrown;font-size:75%">
+            <tr>
+                <td>${date}</td>
+                <td>${t0}</td>
+                <td>${t1}</td>
+                <td>${t2}</td>
+                <td>${t3}</td>
+                <td>编辑</td>
+            </tr>
+        </thead>
+        <tbody id="duty_body" style="color:saddlebrown;font-size:75%">
+        </tbody>
+</table>
+
+</script>
+<script id="print_duty" type="text/x-jquery-tmpl">
+    <tr>
+        <td>${date}</td>
+        <td>${t0}</td>
+        <td>${t1}</td>
+        <td>${t2}</td>
+        <td>${t3}</td>
+        <td><a data-toggle="modal" data-target="#update" onclick="editInfo('${date}')"><img src="static/edit.png" alt="" title="" border="0" /></a></td>
+    </tr>
+</script>
+{% endraw %}
+
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script src="static/jquery-tmpl-master/jquery.tmpl.js"></script>
+    <script language="JavaScript" type="text/JavaScript">
+        onload=function () {
+            var today = new Date();
+            var month = today.getMonth() + 1;
+            document.getElementById('select_month').selectedIndex = month
+            print_duty_table(month)
+        };
+        function editInfo(obj) {
+            $("#intraday").val(obj)
+            $("#duty_attended_time").find("option:selected").attr("selected",false);
+            $("#duty_engineer option").each(function () {
+                if ($(this).val() != '0') {
+                    $(this).remove();  //移除原有项            
+                }
+            });
+            var x = document.getElementById('adjust_select');
+            if (x) {
+                x.parentNode.removeChild(x);
+            }
+            document.getElementById('action').selectedIndex = 0
+		}
+        //提交更改
+        function update() {
+            //获取模态框数据
+            var today = new Date();
+            if (Number($("#select_month").val()) >= today.getMonth() + 1) {
+                var intraday = $('#intraday').val();
+                var duty_attended_time = document.getElementById('duty_attended_time');
+                var duty_attended_time_index = duty_attended_time.selectedIndex; //序号，取当前选中选项的序号
+                var duty_attended_time_val = duty_attended_time.options[duty_attended_time_index].value;
+                var duty_engineer = document.getElementById('duty_engineer');
+                var duty_engineer_index = duty_engineer.selectedIndex; //序号，取当前选中选项的序号
+                var duty_engineer_val = duty_engineer.options[duty_engineer_index].value;
+                var action_ = document.getElementById('action');
+                var action_index = action_.selectedIndex; //序号，取当前选中选项的序号
+                var action_val = action_.options[action_index].value;
+                var adjust_select = document.getElementById('adjust_select');
+                if (adjust_select) {
+                    var adjust_select_index = adjust_select.selectedIndex; //序号，取当前选中选项的序号
+                    var adjust_select_val = adjust_select.options[adjust_select_index].value;
+                }
+
+                var params = '{"intraday":"' + intraday + '","duty_attended_time_val":"' + duty_attended_time_val + '","duty_engineer_val":"' + duty_engineer_val + '","action_val":"' + action_val + '","adjust_select_val":"' + adjust_select_val + '"}'
+                $.ajax({
+                    type: "POST",          //提交方式          
+                    url: "operate_duty_arrange",  //提交的页面/方法名          
+                    data: params,         //参数（如果没有参数：null）          
+                    dataType: "text",        //类型          
+                    contentType: "application/json; charset=utf-8",
+                    success: function (msg) {
+                        var msg_json = JSON.parse(msg);
+                        msg_json = JSON.parse(msg_json);
+                        if (msg_json['status'] == 'OK') {
+                            toastr.info('修改成功');
+                            $('#update').hide();
+                            $(".modal-backdrop").remove();
+                            $("body.modal-open").removeClass('modal-open');
+                            print_duty_table($('#checked_month').val());
+                        }
+                        else {
+                            toastr.warning(msg_json['status']);
+                        }
+                    },
+                    error: function (xhr, msg, e) {
+                        toastr.warning("系统繁忙");
+                    }
+                });
+            }
+        }
+
+        function HTMerDel()
+        {
+            if(confirm("确定要删除该信息吗？删除将不能恢复！"))
+            return true;
+            else
+            return false;
+        }
+        function print_duty_table(obj) {
+            var x = document.getElementById('duty_table');
+            if (x) {
+                x.parentNode.removeChild(x);
+            }
+            $('#checked_month').val(obj)
+            $("#duty_attended_time option").each(function () {
+                if ($(this).val() != '0') {
+                    $(this).remove();  //移除原有项            
+                }
+            });
+            var params = '{"selected_month":"' + obj + '"}'; //此处参数名要注意和后台方法参数名要一致 
+            $.ajax({
+                type: "POST",          //提交方式          
+                url: "print_duty_schedule_api",  //提交的页面/方法名          
+                data: params,         //参数（如果没有参数：null）          
+                dataType: "text",        //类型          
+                contentType: "application/json; charset=utf-8",
+                success: function (msg) {
+                    var msg_json = JSON.parse(msg);
+                    msg_json = JSON.parse(msg_json);
+                    $('#print_title').tmpl(msg_json['title']).appendTo('#print_table');
+                    $('#print_duty').tmpl(msg_json['duty_arrangement']).appendTo('#duty_body');
+                    $('#duty_time_option').tmpl(msg_json['title']).appendTo('#duty_attended_time')
+                },
+                error: function (xhr, msg, e) {
+                    toastr.warning("系统繁忙");
+                }
+            });  
+        }
+        $(function() {
+            $("#select_month").change(function() {  //查询月份下拉菜单的change事件
+                if ($(this).val() != '0') {
+                    print_duty_table($(this).val())
+                }
+            });
+            $("#duty_attended_time").change(function() {  //省份下拉菜单的change事件
+                if ($(this).val() != '0') {//         
+                    var params = '{"selected_duty_time":"' + $(this).val() + '", "selected_date":"' + $("#intraday").val() + '"}'; //此处参数名要注意和后台方法参数名要一致 
+                    $.ajax({
+                        type: "POST",          //提交方式          
+                        url: "check_appointed_time_duty_engineer",  //提交的页面/方法名          
+                        data: params,         //参数（如果没有参数：null）          
+                        dataType: "text",        //类型          
+                        contentType: "application/json; charset=utf-8",
+                        success: function (msg) {
+                            var msg_json = JSON.parse(msg);
+                            msg_json = JSON.parse(msg_json);
+                            $("#duty_engineer option").each(function () {
+                                $(this).remove();  //移除原有项            
+                            });
+                            $("<option value='0'>===请选择值班人员===</option>").appendTo("#duty_engineer");  //添加一个默认项            
+                            $.each(msg_json, function (i) {
+                                var append_text = "<option value='" + i + "'>" + msg_json[i]['username'] + "(" + msg_json[i]['phoneNum'] + ")(" + msg_json[i]['duty_status'] + ")" + "</option>";
+                                $(append_text).appendTo("#duty_engineer")
+                            })
+                        },
+                        error: function (xhr, msg, e) {
+                            toastr.warning("系统繁忙");
+                        }
+                    });
+                }
+                else if ($(this).val() == '0') {
+                    $("#duty_engineer option").each(function () {
+                        $(this).remove();  //移除原有项            
+                    });
+                    $("<option value='0'>===请先选择时间===</option>").appendTo("#duty_engineer");
+                }     
+            });
+                
+            $("#action").change(function() {  //值班时间下拉菜单的change事件
+              if ($(this).val()==4 || $(this).val()==7) {
+                  if (document.getElementById('adjust_select') ) {
+                      var thisNode = document.getElementById('adjust_select');
+                      thisNode.parentNode.removeChild(thisNode);
+                  }
+                  var user_select = document.createElement('select');
+                  user_select.setAttribute('id', 'adjust_select');
+                  user_select.setAttribute('class', 'form-control')
+                  $.ajax({          
+                      type: "POST",          //提交方式          
+                      url: "all_user",  //提交的页面/方法名          
+                      data: null,         //参数（如果没有参数：null）          
+                      dataType: "text",        //类型          
+                      contentType: "application/json; charset=utf-8",                  
+                      success: function(msg) {
+                            var msg_json = JSON.parse(msg);
+                            msg_json = JSON.parse(msg_json);  
+                            $.each(msg_json, function (i) {
+                                  var my_option = document.createElement('option');
+                                  my_option.setAttribute('value', i);
+                                  var append_text = msg_json[i]['username'] + "(" + msg_json[i]['phoneNum'] + ")";
+                                  my_option.appendChild(document.createTextNode(append_text));
+                                  user_select.appendChild(my_option)
+                            })
+                      },          
+                      error: function(xhr, msg, e) {            
+                        toastr.warning("系统繁忙");          
+                      }        
+                 }); 
+                  document.getElementById('modal-body').appendChild(user_select);
+              }
+              else if ($(this).val() != 4) {
+                  if (document.getElementById('adjust_select') ) {
+                      var thisNode = document.getElementById('adjust_select');
+                      thisNode.parentNode.removeChild(thisNode);
+                  }
+              }
+                          
+            });
+        });
+
+        $(function(){
+            //参数设置，若用默认值可以省略以下面代
+            toastr.options = {
+                "closeButton": true, //是否显示关闭按钮
+                "debug": false, //是否使用debug模式
+                "progressBar": false,
+                "positionClass": "toast-bottom-center",//弹出窗的位置
+                "showDuration": "300",//显示的动画时间
+                "hideDuration": "1000",//消失的动画时间
+                "timeOut": "5000", //展现时间
+                "extendedTimeOut": "1000",//加长展示时间
+                "showEasing": "swing",//显示时的动画缓冲方式
+                "hideEasing": "linear",//消失时的动画缓冲方式
+                "showMethod": "fadeIn",//显示时的动画方式
+                "hideMethod": "fadeOut" //消失时的动画方式
+            };
+        })
+    </script>
+{% endblock %}

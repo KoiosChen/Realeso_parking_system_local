@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+
+
+{% block subheader %}
+    <div class="m-subheader ">
+        <div class="d-flex align-items-center">
+            <div class="mr-auto">
+                <h3 class="m-subheader__title m-subheader__title--separator">
+                    系统管理
+                </h3>
+                <ul class="m-subheader__breadcrumbs m-nav m-nav--inline">
+                    <li class="m-nav__item m-nav__item--home">
+                        <a href="#" class="m-nav__link m-nav__link--icon">
+                            <i class="m-nav__link-icon la la-home"></i>
+                        </a>
+                    </li>
+                    <li class="m-nav__separator">
+                        -
+                    </li>
+                    <li class="m-nav__item">
+                        <a href="" class="m-nav__link">
+											<span class="m-nav__link-text">
+												系统管理
+											</span>
+                        </a>
+                    </li>
+                    <li class="m-nav__separator">
+                        -
+                    </li>
+                    <li class="m-nav__item">
+                        <a href="" class="m-nav__link">
+											<span class="m-nav__link-text">
+												参数设置
+											</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block pagecontent %}
+    {% if current_user.is_administrator() %}
+        <div class="m-portlet">
+            <div class="m-portlet__head">
+                <div class="m-portlet__head-caption">
+                    <div class="m-portlet__head-title">
+                        <h3 class="m-portlet__head-text">
+                            微信企业号通知接口参数设置
+                            <small>
+                                <p><a href="https://qy.weixin.qq.com" target="_blank">微信企业号</a></p>
+                            </small>
+                        </h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="m-portlet__body">
+                <div class='container' style="width: 100%;margin:auto;text-align:left;padding:10px;">
+                    <dl>
+                        {% for c in wechat_config %}
+                            <div class="clearfix">
+                                <dt style="float: left;text-align: right">{{ c }}:&emsp;&emsp;&emsp;</dt>
+                                <dd style="float: left;">
+                                    {{ wechat_config[c] }}
+                                </dd>
+                                <dd class="wechat" style="float: right;color: darkgreen;">编辑</dd>
+                            </div>
+                            <hr>
+                        {% endfor %}
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="m-portlet">
+            <div class="m-portlet__head">
+                <div class="m-portlet__head-caption">
+                    <div class="m-portlet__head-title">
+                        <h3 class="m-portlet__head-text">
+                            语音通知接口参数设置
+                            <small>
+                                <a href="https://http://www.ucpaas.com" target="_blank">云之讯开放平台</a>
+                            </small>
+                        </h3>
+                    </div>
+                </div>
+            </div>
+
+            <div class="m-portlet__body">
+                <div class='container' style="width: 100%;margin:auto;text-align:left;padding:10px;">
+                    <dl>
+                        {% for c in callapi_config %}
+                            <div class="clearfix">
+                                <dt style="float: left;text-align: right">{{ c }}:&emsp;&emsp;&emsp;</dt>
+                                <dd style="float: left;">
+                                    {{ callapi_config[c] }}
+                                </dd>
+                                <dd class="callapi" style="float: right;color: darkgreen;">编辑</dd>
+                            </div>
+                            <hr>
+                        {% endfor %}
+                    </dl>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="m-portlet">
+        <div class="m-portlet__head">
+            <div class="m-portlet__head-caption">
+                <div class="m-portlet__head-title">
+                    <h3 class="m-portlet__head-text">
+                        告警策略参数设置
+                        <small>
+                            主要为语音告警参数设置
+                        </small>
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="m-portlet__body">
+            <div class='container' style="width: 100%;margin:auto;text-align:left;padding:10px;">
+                <dl>
+                    {% for c in alarmpolicy_config %}
+                        <div class="clearfix">
+                            <dt style="float: left;text-align: right">{{ c }}:&emsp;&emsp;&emsp;</dt>
+                            <dd style="float: left;">
+                                {{ alarmpolicy_config[c] }}
+                            </dd>
+                            <dd class="alarmpolicy" style="float: right;color: darkgreen;">编辑</dd>
+                        </div>
+                        <hr>
+                    {% endfor %}
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="m-portlet">
+        <div class="m-portlet__head">
+            <div class="m-portlet__head-caption">
+                <div class="m-portlet__head-title">
+                    <h3 class="m-portlet__head-text">
+                        Cacti监控设置
+                        <small>
+                            设置Cacti联动监控参数
+                        </small>
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="m-portlet__body">
+            <div class='container' style="width: 100%;margin:auto;text-align:left;padding:10px;">
+                <dl>
+                    {% for c in cacti_config %}
+                        <div class="clearfix">
+                            <dt style="float: left;text-align: right">{{ c }}:&emsp;&emsp;&emsp;</dt>
+                            <dd style="float: left;">
+                                {{ cacti_config[c] }}
+                            </dd>
+                            <dd class="Cacti" style="float: right;color: darkgreen;">编辑</dd>
+                        </div>
+                        <hr>
+                    {% endfor %}
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <div class="m-portlet">
+        <div class="m-portlet__head">
+            <div class="m-portlet__head-caption">
+                <div class="m-portlet__head-title">
+                    <h3 class="m-portlet__head-text">
+                        计划任务参数设置
+                        <small>
+                            参数单位为'秒'; 若提交0, 则表示暂停计划任务执行;
+                        </small>
+                    </h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="m-portlet__body">
+            <div class='container' style="width: 100%;margin:auto;text-align:left;padding:10px;">
+                <dl>
+                    {% for c in scheduler_config %}
+                        <div class="clearfix">
+                            <dt style="float: left;text-align: right">{{ c }}:&emsp;&emsp;&emsp;</dt>
+                            <dd style="float: left;">
+                                {{ scheduler_config[c] }}
+                            </dd>
+                            <dd class="scheduler" style="float: right;color: darkgreen;">编辑</dd>
+                        </div>
+                        <hr>
+                    {% endfor %}
+                </dl>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态框（Modal） -->
+
+    <div class="modal fade" id="edit_api_config" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">
+                        Parameter Setting
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+											<span aria-hidden="true">
+												&times;
+											</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <input type="text" name="api_params" id="api_params" readonly="true" style="border-style:none;"/>
+                    <input type="text" name="api_params_value" id="api_params_value" style="width: 60%;font-size: 80%">
+                    <input type="hidden" name="api_name" id="api_name">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        关闭
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="update()">
+                        提交更改
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态框（Modal）end -->
+{% endblock %}
+
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        function modify_scheduler(api_params, interval) {
+            var params = '{"scheduler_id":"' + api_params + '","interval":"' + interval + '"}';
+
+            $.ajax({
+                type: "POST",          //提交方式          
+                url: "modify_scheduler",  //提交的页面/方法名          
+                data: params,         //参数（如果没有参数：null）          
+                dataType: "text",        //类型          
+                contentType: "application/json; charset=utf-8",
+
+                success: function (msg) {
+                    var msg_json = JSON.parse(msg);
+                    msg_json = JSON.parse(msg_json);
+                    if (msg_json['status'].match(/OK/)) {
+                        toastr.info(i + " 修改成功");
+                    }
+                    else {
+                        toastr.warning(msg_json['status']);
+                    }
+                },
+                error: function (xhr, msg, e) {
+                    toastr.warning("系统繁忙");
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            $(".wechat, .callapi, .scheduler, .alarmpolicy, .Cacti").click(function () {
+                var api_params = $(this).prev().prev().text().replace(/:/, '');
+                var api_name = $(this).attr('class');
+                $("#api_params").val(api_params);
+                $("#api_name").val(api_name);
+                $("#edit_api_config").modal('show')
+            });
+        });
+
+        //提交更改
+        function update() {
+            //获取模态框数据
+            var api_params = $('#api_params').val().replace(/\s+/, '');
+            var api_params_value = $("#api_params_value").val();
+            var api_name = $("#api_name").val();
+
+            var params = '{"api_params":"' + api_params + '","api_name":"' + api_name + '","api_params_value":"' + api_params_value + '"}'
+            $.ajax({
+                type: "POST",          //提交方式          
+                url: "update_config",  //提交的页面/方法名          
+                data: params,         //参数（如果没有参数：null）          
+                dataType: "text",        //类型          
+                contentType: "application/json; charset=utf-8",
+
+                success: function (msg) {
+                    var msg_json = JSON.parse(msg);
+                    msg_json = JSON.parse(msg_json);
+                    if (msg_json['status'] == 'OK') {
+                        toastr.info("修改成功");
+                        if (api_name == 'scheduler') {
+                            modify_scheduler(api_params, api_params_value)
+                        }
+                        setTimeout("location.reload()", 1000)
+                    }
+                    else {
+                        toastr.warning(msg_json['status']);
+                    }
+                },
+                error: function (xhr, msg, e) {
+                    toastr.warning("系统繁忙");
+                }
+            });
+        }
+        $('#edit_api_config').on('shown.bs.modal', function () {
+            document.getElementById("api_params_value").focus();
+        });
+        $(function () {
+            //参数设置，若用默认值可以省略以下面代
+            toastr.options = {
+                "closeButton": true, //是否显示关闭按钮
+                "debug": false, //是否使用debug模式
+                "progressBar": false,
+                "positionClass": "toast-bottom-center",//弹出窗的位置
+                "showDuration": "300",//显示的动画时间
+                "hideDuration": "1000",//消失的动画时间
+                "timeOut": "5000", //展现时间
+                "extendedTimeOut": "1000",//加长展示时间
+                "showEasing": "swing",//显示时的动画缓冲方式
+                "hideEasing": "linear",//消失时的动画缓冲方式
+                "showMethod": "fadeIn",//显示时的动画方式
+                "hideMethod": "fadeOut" //消失时的动画方式
+            };
+        })
+    </script>
+{% endblock %}

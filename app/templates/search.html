@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "_macros.html" as macros %}
+
+
+{% block page_content %}
+
+<!--第二步：添加如下 HTML 代码-->
+<table id="table_id_example" class="display">
+    <thead>
+        <tr>
+            <th>编号</th>
+            <th>姓名</th>
+            <th style="font-size: 90%">创建日期</th>
+        </tr>
+    </thead>
+</table>
+
+</body>
+</html>
+{% endblock %}
+
+
+{% block scripts %}
+
+<!-- jQuery -->
+<script type="text/javascript" charset="utf8" src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+
+<!-- DataTables -->
+<script type="text/javascript" charset="utf8" src="http://cdn.datatables.net/1.10.15/js/jquery.dataTables.js"></script>
+<script>
+    <!--第三步初始化Datatables-->
+    $(document).ready( function () {
+        $('#table_id_example').DataTable({
+            "searching": false,
+            "serverSide" : true,
+            "processing": true,
+            "ordering":  false,
+            "lengthChange": false,
+            "ajax": {
+                  url: 'test',
+                  type: 'POST'
+            },
+            language: {
+                "sProcessing": "处理中...",
+                "sLengthMenu": "显示 _MENU_ 项结果",
+                "sZeroRecords": "没有匹配结果",
+                "sInfo": "显示第 _START_ 至 _END_ 项结果，共 _TOTAL_ 项",
+                "sInfoEmpty": "显示第 0 至 0 项结果，共 0 项",
+                "sInfoFiltered": "(由 _MAX_ 项结果过滤)",
+                "sInfoPostFix": "",
+                "sSearch": "搜索:",
+                "sUrl": "",
+                "sEmptyTable": "表中数据为空",
+                "sLoadingRecords": "载入中...",
+                "sInfoThousands": ",",
+                "oPaginate": {
+                    "sFirst": "首页",
+                    "sPrevious": "上页",
+                    "sNext": "下页",
+                    "sLast": "末页"
+                },
+                "oAria": {
+                    "sSortAscending": ": 以升序排列此列",
+                    "sSortDescending": ": 以降序排列此列"
+                }
+            }
+        });
+    } );
+</script>
+{% endblock %}

@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+
+{% block pagecontent %}
+<img src={{ url_for('static', filename='cacti_pic/' + filename) }} width='90%' >
+{% endblock%}

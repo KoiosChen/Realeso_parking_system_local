@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+
+
+{% block subheader %}
+    <div class="m-subheader ">
+        <div class="d-flex align-items-center">
+            <div class="mr-auto">
+                <h3 class="m-subheader__title m-subheader__title--separator">
+                    系统管理
+                </h3>
+                <ul class="m-subheader__breadcrumbs m-nav m-nav--inline">
+                    <li class="m-nav__item m-nav__item--home">
+                        <a href="#" class="m-nav__link m-nav__link--icon">
+                            <i class="m-nav__link-icon la la-home"></i>
+                        </a>
+                    </li>
+                    <li class="m-nav__separator">
+                        -
+                    </li>
+                    <li class="m-nav__item">
+                        <a href="" class="m-nav__link">
+											<span class="m-nav__link-text">
+												系统管理
+											</span>
+                        </a>
+                    </li>
+                    <li class="m-nav__separator">
+                        -
+                    </li>
+                    <li class="m-nav__item">
+                        <a href="" class="m-nav__link">
+											<span class="m-nav__link-text">
+												机房管理
+											</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block pagecontent %}
+    <div class="m-portlet">
+        <div class="m-portlet__head">
+            <div class="m-portlet__head-caption">
+                <div class="m-portlet__head-title">
+                    <h3 class="m-portlet__head-text">
+                        机房管理
+                        <small>
+                            添加、删除、查询机房
+                        </small>
+                    </h3>
+                </div>
+            </div>
+            <div class="m-portlet__head-tools">
+                <ul class="m-portlet__nav">
+                    <li class="m-portlet__nav-item">
+                        <a id="newOne" class="m-portlet__nav-link m-portlet__nav-link--icon">
+                            <i class="flaticon-add"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="m-portlet__body">
+            <div class="m_datatable" id="ajax_data"></div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="add_machine_room" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">
+                        添加机房
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+											<span aria-hidden="true">
+												&times;
+											</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="message-text" class="form-control-label">
+                                机房名称:
+                            </label>
+                            <input type="text" class="form-control" placeholder="请输入机房名称" id="machine_room_name"
+                                   required>
+                        </div>
+                        <div class="form-group">
+                            <label for="message-text" class="form-control-label">
+                                机房地址:
+                            </label>
+                            <input type="text" class="form-control" placeholder="请输入机房地址" id="machine_room_address"
+                                   required>
+                        </div>
+                        <div class="form-group">
+                            <label for="message-text" class="form-control-label">
+                                机房级别:
+                            </label>
+                            <select class="selectpicker show-tick form-control" name="syslog_type" id="machine_room_level"
+                                    required>
+                                <option value="" selected="selected">请选择机房级别</option>
+                                <option value="1">核心机房</option>
+                                <option value="2">骨干机房</option>
+                                <option value="3">POP点机房</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        关闭
+                    </button>
+                    <button type="button" class="btn btn-primary" onclick="newone()">
+                        新增
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态框（Modal）end -->
+{% endblock %}
+
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+
+        $("#newOne").click(function () {
+            $("#add_machine_room").removeData("bs.modal").modal('show')
+        });
+
+        function newone() {
+            var machine_room_name = $('#machine_room_name').val();
+            var machine_room_address = $('#machine_room_address').val();
+            var machine_room_level = $('#machine_room_level').val();
+
+            var params = '{"machine_room_name":"' + machine_room_name + '","machine_room_address":"' + machine_room_address + '","machine_room_level":"' + machine_room_level  + '"}';
+
+            $.ajax({
+                type: "POST",          //提交方式          
+                url: "machine_room_add",  //提交的页面/方法名          
+                data: params,         //参数（如果没有参数：null）          
+                dataType: "text",        //类型          
+                contentType: "application/json; charset=utf-8",
+
+                success: function (msg) {
+                    var msg_json = JSON.parse(msg);
+                    msg_json = JSON.parse(msg_json);
+                    if (msg_json['status'].match(/OK/)) {
+                        toastr.info(" 新增成功");
+                        $('#ajax_data').mDatatable().destroy();
+                        DatatableRemoteAjaxDemo.init();
+                        $('#add_machine_room').modal('hide')
+                    }
+                    else {
+                        toastr.warning("新增失败");
+                        $('#add_machine_room').modal('hide')
+                    }
+
+                },
+                error: function (xhr, msg, e) {
+                    toastr.warning("新增失败");
+                    $('#add_machine_room').modal('hide')
+                }
+            });
+        }
+
+        // toastr options
+        toastr.options = {
+            "closeButton": true, //是否显示关闭按钮
+            "debug": false, //是否使用debug模式
+            "progressBar": false,
+            "positionClass": "toast-top-center",//弹出窗的位置
+            "showDuration": "300",//显示的动画时间
+            "hideDuration": "1000",//消失的动画时间
+            "timeOut": "2000", //展现时间
+            "extendedTimeOut": "1000",//加长展示时间
+            "showEasing": "swing",//显示时的动画缓冲方式
+            "hideEasing": "linear",//消失时的动画缓冲方式
+            "showMethod": "fadeIn",//显示时的动画方式
+            "hideMethod": "fadeOut" //消失时的动画方式
+        };
+
+        function HTMerDel(sc_id) {
+            if (confirm("确定要删除该信息吗？删除将不能恢复！")) {
+                var params = '{"sc_id":"' + sc_id + '"}'
+                $.ajax({
+                    type: "POST",          //提交方式          
+                    url: "machine_room_delete",  //提交的页面/方法名          
+                    data: params,         //参数（如果没有参数：null）          
+                    dataType: "text",        //类型          
+                    contentType: "application/json; charset=utf-8",
+
+                    success: function (msg) {
+                        var msg_json = JSON.parse(msg);
+                        msg_json = JSON.parse(msg_json);
+                        if (msg_json['status'].match(/OK/)) {
+                            toastr.info("删除成功");
+                            $('#ajax_data').mDatatable().destroy();
+                            DatatableRemoteAjaxDemo.init();
+                        }
+                        else {
+                            toastr.warning("删除失败");
+                        }
+
+                    },
+                    error: function (xhr, msg, e) {
+                        toastr.warning("删除");
+                    }
+                });
+            }
+            else {
+                toastr.warning('取消删除')
+            }
+        }
+
+        function editInfo(obj) {
+            // It's not support to edit the exist items
+        }
+
+
+        $('#update').on('shown.bs.modal', function () {
+            if (document.getElementsByName('postli').length > 0) {
+                setTimeout(show_jpage, 50);
+
+                function show_jpage() {
+                    $("div.holder").jPages({
+                        containerID: "itemContainer",
+                        perPage: 5
+                    });
+                }
+            }
+        });
+
+        //提交更改
+        function update() {
+            //获取模态框数据
+            var alarm_id = $('#id').val();
+            var body = $('#flask-pagedown-body').val();
+            if (body) {
+                $.ajax({
+                    type: "POST",
+                    url: "post_body",
+                    data: "&alarm_id=" + alarm_id + "&body=" + body,
+                    dataType: 'html',
+                    contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                    success: function (result) {
+                        toastr.info('提交成功')
+                        setTimeout("location.reload()", 1000);
+                    },
+                    error: function (xhr, msg, e) {
+                        toastr.warning("系统繁忙");
+                    }
+                });
+            }
+            else {
+                toastr.warning("未输入任何内容")
+            }
+        }
+    </script>
+
+    <script src="../static/metronic/machine_room_check.js" type="text/javascript"></script>
+{% endblock %}

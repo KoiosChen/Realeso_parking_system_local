@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+
+{% block subheader %}
+    <div class="m-subheader ">
+        <div class="d-flex align-items-center">
+            <div class="mr-auto">
+                <h3 class="m-subheader__title m-subheader__title--separator">
+                    系统管理
+                </h3>
+                <ul class="m-subheader__breadcrumbs m-nav m-nav--inline">
+                    <li class="m-nav__item m-nav__item--home">
+                        <a href="#" class="m-nav__link m-nav__link--icon">
+                            <i class="m-nav__link-icon la la-home"></i>
+                        </a>
+                    </li>
+                    <li class="m-nav__separator">
+                        -
+                    </li>
+                    <li class="m-nav__item">
+                        <a href="" class="m-nav__link">
+											<span class="m-nav__link-text">
+												系统管理
+											</span>
+                        </a>
+                    </li>
+                    <li class="m-nav__separator">
+                        -
+                    </li>
+                    <li class="m-nav__item">
+                        <a href="" class="m-nav__link">
+											<span class="m-nav__link-text">
+												许可证管理
+											</span>
+                        </a>
+                    </li>
+                    <li class="m-nav__separator">
+                </ul>
+            </div>
+            <div>
+                <div class="m-dropdown m-dropdown--inline m-dropdown--arrow m-dropdown--align-right m-dropdown--align-push"
+                     data-dropdown-toggle="hover" aria-expanded="true">
+                    <a href="#"
+                       class="m-portlet__nav-link btn btn-lg btn-secondary  m-btn m-btn--outline-2x m-btn--air m-btn--icon m-btn--icon-only m-btn--pill  m-dropdown__toggle">
+                        <i class="la la-plus m--hide"></i>
+                        <i class="la la-ellipsis-h"></i>
+                    </a>
+                    <div class="m-dropdown__wrapper">
+                        <span class="m-dropdown__arrow m-dropdown__arrow--right m-dropdown__arrow--adjust"></span>
+                        <div class="m-dropdown__inner">
+                            <div class="m-dropdown__body">
+                                <div class="m-dropdown__content">
+                                    <ul class="m-nav">
+                                        <li class="m-nav__section m-nav__section--first m--hide">
+															<span class="m-nav__section-text">
+																Quick Actions
+															</span>
+                                        </li>
+                                        <li class="m-nav__item">
+                                            <a href="" class="m-nav__link">
+                                                <i class="m-nav__link-icon flaticon-share"></i>
+                                                <span class="m-nav__link-text">
+																	Activity
+																</span>
+                                            </a>
+                                        </li>
+                                        <li class="m-nav__item">
+                                            <a href="" class="m-nav__link">
+                                                <i class="m-nav__link-icon flaticon-chat-1"></i>
+                                                <span class="m-nav__link-text">
+																	Messages
+																</span>
+                                            </a>
+                                        </li>
+                                        <li class="m-nav__item">
+                                            <a href="" class="m-nav__link">
+                                                <i class="m-nav__link-icon flaticon-info"></i>
+                                                <span class="m-nav__link-text">
+																	FAQ
+																</span>
+                                            </a>
+                                        </li>
+                                        <li class="m-nav__item">
+                                            <a href="" class="m-nav__link">
+                                                <i class="m-nav__link-icon flaticon-lifebuoy"></i>
+                                                <span class="m-nav__link-text">
+																	Support
+																</span>
+                                            </a>
+                                        </li>
+                                        <li class="m-nav__separator m-nav__separator--fit"></li>
+                                        <li class="m-nav__item">
+                                            <a href="#"
+                                               class="btn btn-outline-danger m-btn m-btn--pill m-btn--wide btn-sm">
+                                                Submit
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block pagecontent %}
+    <div class="m-portlet">
+        <div class="m-portlet__head">
+            <div class="m-portlet__head-caption">
+                <div class="m-portlet__head-title">
+                    <h3 class="m-portlet__head-text">
+                        许可证管理
+                    </h3>
+                </div>
+            </div>
+            <div class="m-portlet__head-tools">
+                <ul class="m-portlet__nav">
+                    <li class="m-portlet__nav-item">
+                        <a id="newOne" class="m-portlet__nav-link m-portlet__nav-link--icon">
+                            <i class="flaticon-add"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="m-portlet__body">
+            {% if current_user.is_administrator() %}
+                <div class='m-list-search' style="width: 70%;margin:auto;text-align:left;padding:10px;">
+                    <div class="m-list-search__results">
+                        <span class="m-list-search__result-category m-list-search__result-category--first m--font-boldest">
+																	当前状态
+																</span>
+                        <a href="#" class="m-list-search__result-item">
+																	<span class="m-list-search__result-item-icon">
+																		<i class="flaticon-calendar-3 m--font-warning"></i>
+																	</span>
+                            <span class="m-list-search__result-item-text m--font-boldest" id="expire_date">
+																		许可证过期日期:&emsp;&emsp;&emsp;{{ expire_date }}
+																	</span>
+                        </a>
+                        <a href="#" class="m-list-search__result-item">
+																	<span class="m-list-search__result-item-icon">
+																		<i class="flaticon-time-2 m--font-warning"></i>
+																	</span>
+                            <span class="m-list-search__result-item-text m--font-boldest" id="expire_in">
+																		许可证剩余时间(秒):&emsp;&emsp;&emsp;{{ expire_in }}
+																	</span>
+                        </a>
+                        <a href="#" class="m-list-search__result-item">
+																	<span class="m-list-search__result-item-icon">
+																		<i class="flaticon-puzzle m--font-warning"></i>
+																	</span>
+                            <span class="m-list-search__result-item-text m--font-boldest" id="pubkey">
+																		公钥: &emsp; <br>
+
+																	</span>
+                        </a>
+                        <textarea class="form-control m-input" id='pubkeyarea' rows="10" readonly="True"
+                                  style="border-style:none;resize:none;">{{ pubkey }}</textarea>
+                    </div>
+                    <hr>
+                </div>
+
+                <div class='container' style="width: 70%;margin:auto;text-align:left;padding:10px;">
+                    <div>
+                        <textarea class="form-control m-input" id="new_licence" type='text' rows="10"
+                                  style="resize:none;"
+                                  placeholder="将新的许可证黏贴至此" required></textarea>
+                        <br><br>
+                        <input id="update_licence" class="btn btn-primary" type="submit" value="提交更新">
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $("#update_licence").click(function () {
+            $.ajax({
+                type: "POST",
+                url: "update_licence",
+                data: {
+                    'new_licence': $('#new_licence').val()
+                },
+                dataType: "text",
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function (msg) {
+                    var msg_json = JSON.parse(msg);
+                    msg_json = JSON.parse(msg_json);
+                    if (msg_json['status'] == 'OK') {
+                        toastr.info("许可证升级成功");
+                        $('#new_licence').val('');
+                        $('#expire_date').html('许可证过期日期:&emsp;&emsp;&emsp;' + msg_json['expire_date']);
+                        $('#expire_in').html('许可证剩余时间(秒):&emsp;&emsp;&emsp;' + msg_json['expire_in']);
+                        $('#pubkeyarea').html(msg_json['pubkey']);
+                    }
+                    else {
+                        toastr.warning(msg_json['status']);
+                    }
+                },
+                error: function (xhr, msg, e) {
+                    toastr.warning("系统繁忙");
+                }
+            });
+        });
+        $(function () {
+            //参数设置，若用默认值可以省略以下面代
+            toastr.options = {
+                "closeButton": true, //是否显示关闭按钮
+                "debug": false, //是否使用debug模式
+                "progressBar": false,
+                "positionClass": "toast-bottom-center",//弹出窗的位置
+                "showDuration": "300",//显示的动画时间
+                "hideDuration": "1000",//消失的动画时间
+                "timeOut": "5000", //展现时间
+                "extendedTimeOut": "1000",//加长展示时间
+                "showEasing": "swing",//显示时的动画缓冲方式
+                "hideEasing": "linear",//消失时的动画缓冲方式
+                "showMethod": "fadeIn",//显示时的动画方式
+                "hideMethod": "fadeOut" //消失时的动画方式
+            };
+        })
+    </script>
+{% endblock %}

@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+
+
+{% block subheader %}
+    <div class="m-subheader ">
+        <div class="d-flex align-items-center">
+            <div class="mr-auto">
+                <h3 class="m-subheader__title m-subheader__title--separator">
+                    系统管理
+                </h3>
+                <ul class="m-subheader__breadcrumbs m-nav m-nav--inline">
+                    <li class="m-nav__item m-nav__item--home">
+                        <a href="#" class="m-nav__link m-nav__link--icon">
+                            <i class="m-nav__link-icon la la-home"></i>
+                        </a>
+                    </li>
+                    <li class="m-nav__separator">
+                        -
+                    </li>
+                    <li class="m-nav__item">
+                        <a href="" class="m-nav__link">
+											<span class="m-nav__link-text">
+												系统管理
+											</span>
+                        </a>
+                    </li>
+                    <li class="m-nav__separator">
+                        -
+                    </li>
+                    <li class="m-nav__item">
+                        <a href="" class="m-nav__link">
+											<span class="m-nav__link-text">
+												设备管理
+											</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block pagecontent %}
+    <div class="m-portlet">
+        <div class="m-portlet__head">
+            <div class="m-portlet__head-caption">
+                <div class="m-portlet__head-title">
+                    <h3 class="m-portlet__head-text">
+                        设备管理
+                        <small>
+                            添加、删除、查询设备信息，可添加设备端口关系
+                        </small>
+                    </h3>
+                </div>
+            </div>
+            <div class="m-portlet__head-tools">
+                <ul class="m-portlet__nav">
+                    <li class="m-portlet__nav-item">
+                        <a id="newOne" class="m-portlet__nav-link m-portlet__nav-link--icon">
+                            <i class="flaticon-add"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="m-portlet__body">
+            <div class="m_datatable" id="ajax_data"></div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="add_device" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">
+                        添加设备
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+											<span aria-hidden="true">
+												&times;
+											</span>
+                    </button>
+                </div>
+
+                <form class="m-form m-form--fit m-form--label-align-right" id="m_form_1">
+                    <div class="modal-body">
+                        <div class="m-form__content">
+                            <div class="m-alert m-alert--icon alert alert-danger m--hide" role="alert"
+                                 id="m_form_1_msg">
+                                <div class="m-alert__icon">
+                                    <i class="la la-warning"></i>
+                                </div>
+                                <div class="m-alert__text">
+                                    填写信息有误，请检查重填后再次提交！
+                                </div>
+                                <div class="m-alert__close">
+                                    <button type="button" class="close" data-close="alert" aria-label="Close"></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-form-label col-lg-3 col-sm-12">
+                                设备名 *
+                            </label>
+                            <div class="col-lg-6 col-md-9 col-sm-12">
+                                <input type="text" class="form-control m-input" name="device_name"
+                                       placeholder="请输入主机名" data-toggle="m-tooltip"
+                                       id="device_name">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-form-label col-lg-3 col-sm-12">
+                                设备IP *
+                            </label>
+                            <div class="col-lg-6 col-md-9 col-sm-12">
+                                <input type="text" class="form-control m-input" name="device_ip"
+                                       placeholder="请输入设备IP" data-toggle="m-tooltip"
+                                       title="" id="device_ip">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-form-label col-lg-3 col-sm-12">
+                                所属机房 *
+                            </label>
+                            <div class="col-lg-6 col-md-9 col-sm-12">
+                                <select class="selectpicker show-tick form-control" name="syslog_serverty"
+                                        id="machine_room">
+                                    <option value="" selected="selected">请选择上联机房</option>
+                                    {% for m in machine_room_list %}
+                                        <option value={{ m.id }}>{{ m.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                        <input class="btn btn-default" id="submit" name="submit" value="提交" type="submit">
+                    </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态框（Modal）end -->
+{% endblock %}
+
+
+{% block scripts %}
+    {{ super() }}
+    <script src="../static/metronic/device_check.js"></script>
+    <script>
+
+        $("#newOne").click(function () {
+            $("#add_device").removeData("bs.modal").modal('show')
+        });
+
+        // toastr options
+        toastr.options = {
+            "closeButton": true, //是否显示关闭按钮
+            "debug": false, //是否使用debug模式
+            "progressBar": false,
+            "positionClass": "toast-top-center",//弹出窗的位置
+            "showDuration": "300",//显示的动画时间
+            "hideDuration": "1000",//消失的动画时间
+            "timeOut": "2000", //展现时间
+            "extendedTimeOut": "1000",//加长展示时间
+            "showEasing": "swing",//显示时的动画缓冲方式
+            "hideEasing": "linear",//消失时的动画缓冲方式
+            "showMethod": "fadeIn",//显示时的动画方式
+            "hideMethod": "fadeOut" //消失时的动画方式
+        };
+
+        function HTMerDel(sc_id) {
+            if (confirm("确定要删除该信息吗？删除将不能恢复！")) {
+                var params = '{"sc_id":"' + sc_id + '"}'
+                $.ajax({
+                    type: "POST",          //提交方式          
+                    url: "device_delete",  //提交的页面/方法名          
+                    data: params,         //参数（如果没有参数：null）          
+                    dataType: "text",        //类型          
+                    contentType: "application/json; charset=utf-8",
+
+                    success: function (msg) {
+                        var msg_json = JSON.parse(msg);
+                        msg_json = JSON.parse(msg_json);
+                        if (msg_json['status'].match(/OK/)) {
+                            toastr.info("删除成功");
+                            $('#ajax_data').mDatatable().destroy();
+                            DatatableRemoteAjaxDemo.init();
+                        }
+                        else {
+                            toastr.warning("删除失败");
+                        }
+
+                    },
+                    error: function (xhr, msg, e) {
+                        toastr.warning("删除");
+                    }
+                });
+            }
+            else {
+                toastr.warning('取消删除')
+            }
+        }
+
+        function editInfo(obj) {
+            // It's not support to edit the exist items
+        }
+
+
+        $('#update').on('shown.bs.modal', function () {
+            if (document.getElementsByName('postli').length > 0) {
+                setTimeout(show_jpage, 50);
+
+                function show_jpage() {
+                    $("div.holder").jPages({
+                        containerID: "itemContainer",
+                        perPage: 5
+                    });
+                }
+            }
+        });
+    </script>
+
+    <script src="../static/metronic/device_check.js" type="text/javascript"></script>
+{% endblock %}

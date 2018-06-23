@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "_macros.html" as macros %}
+
+
+{% block page_content %}
+
+{{ wtf.quick_form(form) }}
+
+<div class="page-header">
+    <h1>大区管辖机房信息</h1>
+        <table class="table">
+            <thead>
+                <th>编号</th>
+                <th>大区</th>
+                <th>描述</th>
+                <th>编辑</th>
+            </thead>
+            <tbody>
+                {% for o in object_list %}
+                    <tr>
+                        <td>{{ o.id }}</td>
+                        <td>{{ o.area_name }}</td>
+                        <td>{{ o.area_desc }}</td>
+                        <td><a data-toggle="modal" data-target="#update" onclick="editInfo({{ o.id }})"><img src="{{url_for('static',filename='edit.png', _external=True)}}" alt="" title="" border="0" /></a></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+</div>
+<div class="pagination  ">
+    {{ macros.pagination_widget(pagination, '.area_config') }}
+</div>
+
+
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="update" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h4 class="modal-title" id="myModalLabel">修改用户信息</h4>
+            </div>
+            <div class="modal-body">
+                <p>用户ID: <input type="text" name="id" id="id" readonly="true" /></p>
+                <p>{{ wtf.form_field(modal_form.area_name, id='areaname') }}</p>
+                <p>{{ wtf.form_field(modal_form.machine_room_name, id='machine_room_name') }}</p>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary" onclick="update()">提交更改</button>
+            </div>
+        </div>
+        <!-- /.modal-content -->
+    </div>
+    <!-- /.modal -->
+</div>
+<!-- 模态框（Modal）end -->
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script language="JavaScript" type="text/JavaScript">
+        function editInfo(obj) {
+            id = obj
+            $('#id').val(id);
+			$('#update').modal('show');
+		}
+        //提交更改
+        function update() {
+            //获取模态框数据
+            var area_id = $('#id').val();
+            var area_name = $('#areaname').val();
+            var machine_room_name = $('#machine_room_name').val();
+            $.ajax({
+                type: "post",
+                url: "areainfo_update",
+                data: "&area_id=" + area_id + "&area_name=" + area_name + "&machine_room_name=" + machine_room_name,
+                dataType: 'html',
+                contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                success: function(result) {
+                    location.reload();
+                }
+            });
+        }
+        function HTMerDel()
+        {
+            if(confirm("确定要删除该信息吗？删除将不能恢复！"))
+            return true;
+            else
+            return false;
+        }
+    </script>
+
+{% endblock %}
