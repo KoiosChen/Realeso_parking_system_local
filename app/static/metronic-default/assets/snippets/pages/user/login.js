@@ -71,9 +71,8 @@ var SnippetLogin = function() {
 
             form.validate({
                 rules: {
-                    email: {
-                        required: true,
-                        email: true
+                    phoneNum: {
+                        required: true
                     },
                     password: {
                         required: true

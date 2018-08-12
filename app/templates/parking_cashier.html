@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+
+{% block pagecontent %}
+    <div class="row">
+        <div class="col-lg-5">
+            <!--begin::Portlet-->
+            <div class="m-portlet">
+                <div class="m-portlet__head">
+                    <div class="m-portlet__head-caption">
+                        <div class="m-portlet__head-title">
+												<span class="m-portlet__head-icon">
+													<i class="flaticon-map-location"></i>
+												</span>
+                            <h3 class="m-portlet__head-text">
+                                入场车辆照片
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="m-portlet__body">
+                    <img id="entry_pic" alt="parking_entry" width="95%"/>
+                </div>
+            </div>
+            <!--end::Portlet-->
+            <!--begin::Portlet-->
+            <div class="m-portlet">
+                <div class="m-portlet__head">
+                    <div class="m-portlet__head-caption">
+                        <div class="m-portlet__head-title">
+												<span class="m-portlet__head-icon">
+													<i class="flaticon-map-location"></i>
+												</span>
+                            <h3 class="m-portlet__head-text">
+                                出场车辆照片
+                            </h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="m-portlet__body">
+                    <img id="exit_pic" alt="pakring_exit" width="95%"/>
+                </div>
+            </div>
+            <!--end::Portlet-->
+        </div>
+        <div class="col-lg-7">
+            <!--begin::Portlet-->
+            <div class="m-portlet m-portlet--success m-portlet--head-solid-bg">
+                <div class="m-portlet__body">
+                    <div class="row align-items-center">
+                        <div class="col-xl-4 order-1 order-xl-1">
+                            <div class="form-group m-form__group row align-items-center">
+                                <img id="entry_plate_number_pic" alt="parking_entry" width="80%"/>
+                            </div>
+                        </div>
+                        <div class="col-xl-8 order-2 order-xl-2 m--align-left">
+                            <div class="m-demo-icon">
+                                <div class="m-demo-icon__preview">
+                                    <li class="m--icon-font-size-sm1 la la-automobile"></li>
+                                </div>
+                                <di class="m--icon-font-size-sm1 m-demo-icon__class">
+                                    <span>订单编号：</span>
+                                    <span class="m--font-primary" id="parking_record_id"><strong></strong></span>
+                                </di>
+                            </div>
+                            <div class="m-demo-icon">
+                                <div class="m-demo-icon__preview">
+                                    <li class="m--icon-font-size-sm1 la la-automobile"></li>
+                                </div>
+                                <di class="m--icon-font-size-sm1 m-demo-icon__class">
+                                    <span>入场车牌：</span>
+                                    <span class="m--font-primary" id="entry_number_plate"><strong></strong></span>
+                                </di>
+                            </div>
+                            <div class="m-demo-icon">
+                                <div class="m-demo-icon__preview">
+                                    <li class="m--icon-font-size-sm1 la flaticon-time-1"></li>
+                                </div>
+                                <di class="m--icon-font-size-sm1 m-demo-icon__class">
+                                    <span>入场时间：</span>
+                                    <span class="m--font-primary" id="entry_time"><strong></strong></span>
+                                </di>
+                            </div>
+                            <div class="m-demo-icon">
+                                <div class="m-demo-icon__preview">
+                                    <li class="m--icon-font-size-sm1 la flaticon-stopwatch"></li>
+                                </div>
+                                <di class="m--icon-font-size-sm1 m-demo-icon__class">
+                                    <span>入场单价：</span>
+                                    <span class="m--font-primary" id="entry_unit_price"><strong></strong></span>
+                                </di>
+                            </div>
+                            <div class="m-demo-icon">
+                                <div class="m-demo-icon__preview">
+                                    <li class="m--icon-font-size-sm1 la flaticon-stopwatch"></li>
+                                </div>
+                                <di class="m--icon-font-size-sm1 m-demo-icon__class">
+                                    <span>相关订单：</span>
+                                    <span class="m--font-primary"><strong>无</strong></span>
+                                </di>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--end::Portlet-->
+            <!--begin::Portlet-->
+            <div class="m-portlet m-portlet--success m-portlet--head-solid-bg">
+                <div class="m-portlet__body">
+                    <div class="row align-items-center">
+                        <div class="col-xl-4 order-1 order-xl-1">
+                            <div class="form-group m-form__group row align-items-center">
+                                <img id="exit_number_plate_pic" alt="parking_exit" width="80%"/>
+                            </div>
+                        </div>
+                        <div class="col-xl-8 order-2 order-xl-2 m--align-left">
+                            <div class="m-demo-icon">
+                                <div class="m-demo-icon__preview">
+                                    <li class="m--icon-font-size-sm1 la la-automobile"></li>
+                                </div>
+                                <di class="m--icon-font-size-sm1 m-demo-icon__class">
+                                    <span>出场车牌：</span>
+                                    <span class="m--font-primary" id="exit_number_plate"><strong></strong></span>
+                                </di>
+                            </div>
+                            <div class="m-demo-icon">
+                                <div class="m-demo-icon__preview">
+                                    <li class="m--icon-font-size-sm1 la flaticon-time-1"></li>
+                                </div>
+                                <di class="m--icon-font-size-sm1 m-demo-icon__class">
+                                    <span>出场时间：</span>
+                                    <span class="m--font-primary" id="exit_time"><strong></strong></span>
+                                </di>
+                            </div>
+                            <div class="m-demo-icon">
+                                <div class="m-demo-icon__preview">
+                                    <li class="m--icon-font-size-sm1 la flaticon-stopwatch"></li>
+                                </div>
+                                <di class="m--icon-font-size-sm1 m-demo-icon__class">
+                                    <span>付费时长：</span>
+                                    <span class="m--font-primary" id="parking_time"><strong></strong></span>
+                                </di>
+                            </div>
+                            <div class="m-demo-icon">
+                                <div class="m-demo-icon__preview">
+                                    <li class="m--icon-font-size-sm1 la flaticon-stopwatch"></li>
+                                </div>
+                                <di class="m--icon-font-size-lg1 m-demo-icon__class">
+                                    <span>总计金额：</span>
+                                    <span class="m--font-danger" id="pay_fee"><strong></strong></span>
+                                </di>
+                            </div>
+                        </div>
+                    </div>
+                    <!--begin::Form-->
+                    <div class="m-form__actions">
+                        <div class="row align-items-center">
+                            <div class="col-xl-4 order-1 order-xl-1">
+                                <button type="submit" class="btn btn-primary" id="paid">
+                                    付费出场
+                                </button>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+
+            </div>
+            <div id="log"></div>
+
+            <!--end::Portlet-->
+
+        </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {{ super() }}
+    <script>
+        $(document).ready(function () {
+            var socket = io.connect('http://127.0.0.1:5000/test');
+
+            socket.on('connect', function () {
+                socket.emit('cashier check');
+            });
+
+            socket.on('ws_test', function (msg) {
+                if (msg.status === 'true') {
+                    $('#entry_unit_price').text(msg.content.entry_unit_price);
+                    $('#entry_number_plate').text(msg.content.number_plate);
+                    $('#entry_time').text(msg.content.entry_time);
+                    $('#pay_fee').text(msg.content.fee);
+                    $('#parking_time').text(msg.content.totally_time);
+                    $('#entry_pic').attr('src', msg.content.entry_pic);
+                    $('#entry_plate_number_pic').attr('src', msg.content.entry_plate_number_pic);
+                    $('#parking_record_id').text(msg.content.parking_record_id)
+                }
+                $('#exit_number_plate').text(msg.content.number_plate);
+                $('#exit_time').text(msg.content.exit_time);
+                $('#exit_pic').attr('src', msg.content.exit_pic);
+                $('#exit_number_plate_pic').attr('src', msg.content.exit_plate_number_pic);
+            });
+
+            $('#paid').click(function () {
+                var parking_record_id = $('#parking_record_id').text();
+                var pay_fee = $('#pay_fee').text();
+                if (parking_record_id && pay_fee) {
+                    socket.emit('paid opening', {
+                        'parking_record_id': parking_record_id,
+                        'fee': $('#pay_fee').text()
+                    });
+                }
+                else {
+                    alert('无匹配车辆信息，不可点击')
+                }
+
+            });
+
+            socket.on('paid result', function (result) {
+                if (result.status === 'true') {
+                    toastr.info(result.content);
+                    socket.emit('cashier check')
+                }
+                else {
+                    toastr.warning(result.content)
+                }
+            });
+        });
+    </script>
+{% endblock %}

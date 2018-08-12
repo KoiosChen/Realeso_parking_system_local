@@ -31,128 +31,11 @@ def parameterSetting():
                            cacti_config=cacti_config)
 
 
-@main.route('/syslog_config', methods=['GET', 'POST'])
+@main.route('/parking_lot_management', methods=['GET', 'POST'])
 @login_required
 @permission_required(Permission.NETWORK_MANAGER)
-def syslog_config():
-    if request.method == 'GET':
-        logger.info('User {} is doing syslog config'.format(session['LOGINNAME']))
-        return render_template('syslogSetting.html')
-    elif request.method == 'POST':
-        page_start = (int(request.form.get('datatable[pagination][page]', '0')) - 1) * 10
-        length = int(request.form.get('datatable[pagination][perpage]'))
-
-        data = [{'id': sc.id,
-                 'alarm_type': sc.alarm_type,
-                 'alarm_level': sc.alarm_level,
-                 'alarm_name': sc.alarm_name,
-                 'alarm_keyword': sc.alarm_keyword,
-                 'alarm_status': sc.alarm_status,
-                 'alarm_create_time': sc.create_time,
-                 }
-                for sc in SyslogAlarmConfig.query.offset(page_start).limit(length)]
-
-        recordsTotal = SyslogAlarmConfig.query.count()
-
-        rest = {
-            "meta": {
-                "page": int(request.form.get('datatable[pagination][page]')),
-                "pages": int(recordsTotal) / int(length),
-                "perpage": int(length),
-                "total": int(recordsTotal),
-                "sort": "asc",
-                "field": "ShipDate"
-            },
-            "data": data
-        }
-        return jsonify(rest)
-
-
-@main.route('/syslog_config_add', methods=['POST'])
-@login_required
-@permission_required(Permission.NETWORK_MANAGER)
-def syslog_config_add():
-    params = request.get_data()
-    jl = params.decode('utf-8')
-    j = json.loads(jl)
-    print(j)
-    syslog_type = j.get('syslog_type')
-    syslog_alarm_level = j.get('syslog_alarm_level')
-    syslog_alarm_name = j.get('syslog_alarm_name')
-    syslog_alarm_keyword = j.get('syslog_alarm_keyword')
-
-    if SyslogAlarmConfig.query.filter(or_(SyslogAlarmConfig.alarm_name.__eq__(syslog_alarm_name),
-                                          SyslogAlarmConfig.alarm_keyword.__eq__(syslog_alarm_keyword))).all():
-        return jsonify(json.dumps({'status': 'False'}))
-    else:
-        syslog_alarm_keyword = syslog_alarm_keyword.replace('\n', '\\n')
-        print(syslog_alarm_keyword)
-        new_config = SyslogAlarmConfig(alarm_type=syslog_type,
-                                       alarm_name=syslog_alarm_name,
-                                       alarm_level=syslog_alarm_level,
-                                       alarm_status=1,
-                                       alarm_keyword=syslog_alarm_keyword,
-                                       create_time=time.localtime())
-        db.session.add(new_config)
-        db.session.commit()
-        return jsonify(json.dumps({'status': 'OK'}))
-
-
-@main.route('/syslog_config_delete', methods=['POST'])
-@login_required
-@permission_required(Permission.NETWORK_MANAGER)
-def syslog_config_delete():
-    params = request.get_data()
-    jl = params.decode('utf-8')
-    j = json.loads(jl)
-    print(j)
-    sc_id = j.get('sc_id')
-
-    delete_target = SyslogAlarmConfig.query.filter_by(id=sc_id).first()
-
-    if delete_target:
-        db.session.delete(delete_target)
-        db.session.commit()
-        return jsonify(json.dumps({'status': 'OK'}))
-    else:
-        return jsonify(json.dumps({'status': 'False'}))
-
-
-@main.route('/parking_log_management', methods=['GET', 'POST'])
-@login_required
-@permission_required(Permission.NETWORK_MANAGER)
-def parking_log_management():
-    status_dict = {'0': '已删除', '1': '运行中', '2': '待定'}
-    level_dict = {'1': '核心机房', '2': '骨干机房', '3': 'POP点机房'}
-    if request.method == 'GET':
-        logger.info('User {} is checking machine room list'.format(session['LOGINNAME']))
-        return render_template('parking_lot_management.html')
-    elif request.method == 'POST':
-        page_start = (int(request.form.get('datatable[pagination][page]', '0')) - 1) * 10
-        length = int(request.form.get('datatable[pagination][perpage]'))
-
-        data = [{'id': sc.id,
-                 'machine_room_name': sc.name,
-                 'machine_room_address': sc.address,
-                 'machine_room_level': level_dict[str(sc.level)],
-                 'machine_room_status': status_dict[str(sc.status)],
-                 }
-                for sc in MachineRoom.query.order_by(MachineRoom.id).offset(page_start).limit(length)]
-
-        recordsTotal = MachineRoom.query.count()
-
-        rest = {
-            "meta": {
-                "page": int(request.form.get('datatable[pagination][page]')),
-                "pages": int(recordsTotal) / int(length),
-                "perpage": int(length),
-                "total": int(recordsTotal),
-                "sort": "asc",
-                "field": "ShipDate"
-            },
-            "data": data
-        }
-        return jsonify(rest)
+def parking_lot_management():
+    return True
 
 
 @main.route('/parking_lot_add', methods=['POST'])
@@ -167,20 +50,20 @@ def parking_lot_add():
     machine_room_address = j.get('machine_room_address')
     machine_room_level = j.get('machine_room_level')
 
-    if MachineRoom.query.filter(or_(MachineRoom.name.__eq__(machine_room_name),
-                                    MachineRoom.address.__eq__(machine_room_address))).all():
+    if ParkingLot.query.filter(or_(ParkingLot.name.__eq__(machine_room_name),
+                                   ParkingLot.address.__eq__(machine_room_address))).all():
         return jsonify(json.dumps({'status': 'False'}))
     else:
-        last_machine_room = MachineRoom.query.order_by(MachineRoom.id.desc()).first()
+        last_machine_room = ParkingLot.query.order_by(ParkingLot.id.desc()).first()
         if last_machine_room:
             permit_value = hex(int(last_machine_room.permit_value, 16) << 1)
         else:
             permit_value = hex(1)
-        new_machine_room = MachineRoom(name=machine_room_name,
-                                       address=machine_room_address,
-                                       level=machine_room_level,
-                                       status='1',
-                                       permit_value=permit_value)
+        new_machine_room = ParkingLot(name=machine_room_name,
+                                      address=machine_room_address,
+                                      level=machine_room_level,
+                                      status='1',
+                                      permit_value=permit_value)
         db.session.add(new_machine_room)
         db.session.commit()
         return jsonify(json.dumps({'status': 'OK'}))
@@ -196,7 +79,7 @@ def parking_lot_delete():
     print(j)
     sc_id = j.get('sc_id')
 
-    delete_target = MachineRoom.query.filter_by(id=sc_id).first()
+    delete_target = ParkingLot.query.filter_by(id=sc_id).first()
     delete_target.status = '0'
 
     if delete_target:
@@ -212,22 +95,23 @@ def parking_lot_delete():
 @permission_required(Permission.NETWORK_MANAGER)
 def devices_management():
     status_dict = {'0': '已删除', '1': '运行中', '2': '待定'}
-    machine_dict = {m.id: m.name for m in MachineRoom.query.filter(MachineRoom.status.__ne__('0')).all()}
+    machine_dict = {m.id: m.name for m in ParkingLot.query.filter(ParkingLot.status.__ne__('0')).all()}
     print(machine_dict)
     if request.method == 'GET':
         logger.info('User {} is checking device list'.format(session['LOGINNAME']))
         machine_room_list = [{'id': m.id, 'name': m.name} for m in
-                             MachineRoom.query.filter(MachineRoom.status.__ne__('0')).all()]
+                             ParkingLot.query.filter(ParkingLot.status.__ne__('0')).all()]
         return render_template('devices_management.html', machine_room_list=machine_room_list)
     elif request.method == 'POST':
         page_start = (int(request.form.get('datatable[pagination][page]', '0')) - 1) * 10
         length = int(request.form.get('datatable[pagination][perpage]'))
 
         data = []
-        for sc in Device.query.filter(Device.machine_room_id.isnot(None)).order_by(Device.id).offset(page_start).limit(length):
+        for sc in Camera.query.filter(Camera.machine_room_id.isnot(None)).order_by(Camera.id).offset(page_start).limit(
+                length):
             print(sc)
-            print(MachineRoom.query.filter_by(id=sc.machine_room_id).first())
-            if sc.machine_room_id in machine_dict and MachineRoom.query.filter_by(
+            print(ParkingLot.query.filter_by(id=sc.machine_room_id).first())
+            if sc.machine_room_id in machine_dict and ParkingLot.query.filter_by(
                     id=sc.machine_room_id).first().status != 0:
                 data.append({'id': sc.id,
                              'device_name': sc.device_name,
@@ -236,7 +120,7 @@ def devices_management():
                              'device_status': status_dict[str(sc.status)],
                              })
 
-        recordsTotal = Device.query.filter(Device.machine_room_id.isnot(None)).count()
+        recordsTotal = Camera.query.filter(Camera.machine_room_id.isnot(None)).count()
         print(recordsTotal)
 
         rest = {
@@ -264,24 +148,24 @@ def device_add():
     machine_room = data.get('machine_room')
 
     try:
-        device = Device(device_name=device_name,
+        device = Camera(device_name=device_name,
                         ip=device_ip,
                         login_name='monitor',
                         login_password='shf-k61-906',
                         enable_password='',
-                        machine_room=MachineRoom.query.filter_by(id=machine_room).first(),
+                        machine_room=ParkingLot.query.filter_by(id=machine_room).first(),
                         status='1')
         db.session.add(device)
         db.session.commit()
         logger.info('User {} add device {}  in machine room {} successful'.
                     format(session.get('LOGINNAME'), device_name,
-                           MachineRoom.query.filter_by(id=machine_room).first()))
+                           ParkingLot.query.filter_by(id=machine_room).first()))
         return jsonify({'status': 'OK', 'content': "设备添加成功"})
     except Exception as e:
         # 但是此处不能捕获异常
         logger.error('User {} add device {}  in machine room {} fail, because {}'.
                      format(session.get('LOGINNAME'), device_name,
-                            MachineRoom.query.filter_by(id=machine_room).first(), e))
+                            ParkingLot.query.filter_by(id=machine_room).first(), e))
         db.session.rollback()
         return jsonify({'status': 'False', 'content': "设备添加失败"})
 
@@ -296,7 +180,7 @@ def device_delete():
     print(j)
     sc_id = j.get('sc_id')
 
-    delete_target = Device.query.filter_by(id=sc_id).first()
+    delete_target = Camera.query.filter_by(id=sc_id).first()
     delete_target.status = '0'
 
     if delete_target:
@@ -379,43 +263,22 @@ def update_licence():
 @login_required
 @permission_required(Permission.NETWORK_MANAGER)
 def user_register():
+    logger.debug('register new user')
     data = request.json
     username = data.get('username')
-    email = data.get('email')
     phone = data.get('phone')
     password = data.get('password')
     role_select = data.get('role_select')
     duty_select = data.get('duty_select')
-    machine_room_select = data.get('machine_room_select')
-    area_select = data.get('area_select')
-    print(username, email, phone, password, role_select, duty_select, machine_room_select, area_select)
-
-    permit_machineroom = 0
-
-    if machine_room_select:
-        for mr in machine_room_select:
-            permit_value = MachineRoom.query.filter_by(id=mr).first()
-            if permit_value:
-                permit_machineroom |= int(permit_value.permit_value, 16)
-                print(permit_machineroom)
-    else:
-        permit_machineroom = Area.query.filter_by(id=area_select).first().area_machine_room
-
-    print(permit_machineroom)
-
-    logger.info('This new user {} permitted on machine room {}'.
-                format(username, permit_machineroom))
+    print(username, phone, password, role_select, duty_select)
 
     try:
         user_role = Role.query.filter_by(id=role_select).first()
         user = User(username=username,
-                    email=email,
                     phoneNum=phone,
                     password=password,
                     role=user_role,
-                    area=area_select,
                     duty=duty_select,
-                    permit_machine_room=hex(permit_machineroom) if machine_room_select else permit_machineroom,
                     status=1)
 
         db.session.add(user)
@@ -428,26 +291,16 @@ def user_register():
         return jsonify({'status': 'fail', 'content': "用户添加失败，请联系网管"})
 
 
-@main.route('/local_user_check', methods=['GET', 'POST'])
+@main.route('/user_management', methods=['GET', 'POST'])
 @login_required
 @permission_required(Permission.NETWORK_MANAGER)
-def local_user_check():
+def user_management():
     if request.method == 'GET':
         logger.info('User {} is checking user list'.format(session['LOGINNAME']))
-        modal_form = UserModal()
-
         role = [(str(k.id), k.name) for k in Role.query.all()]
         duty_choice = [(str(jd.job_id), jd.job_name) for jd in JobDescription.query.all()]
-        machine_room_name = get_machine_room_by_area(session.get('permit_machine_room'))
-        area = [(str(a.id), a.area_name) for a in Area.query.all()]
 
-        return render_template('local_user_check.html',
-                               modal_form=modal_form,
-                               role=role,
-                               duty_choice=duty_choice,
-                               machine_room_name=machine_room_name,
-                               area=area
-                               )
+        return render_template('user_management.html', role=role, duty_choice=duty_choice)
 
     elif request.method == 'POST':
         page_start = (int(request.form.get('datatable[pagination][page]', '0')) - 1) * 10
@@ -455,15 +308,11 @@ def local_user_check():
 
         print(page_start, length)
 
-        roles_name = {r.id: r.name for r in Role.query.all()}
-        area_name = {a.id: a.area_name for a in Area.query.all()}
-
         data = [{'id': u.id,
-                 'email': u.email,
                  'username': u.username,
-                 'phoneNum': u.phoneNum,
-                 'area': area_name.get(u.area, ''),
-                 'role': roles_name.get(u.role_id, '')
+                 'phonenum': u.phoneNum,
+                 'role': u.role.name,
+                 'duty': u.user_duty.job_name
                  }
                 for u in User.query.filter(User.status.__eq__(1)).order_by(User.id).offset(page_start).limit(length)]
 
@@ -550,11 +399,10 @@ def userinfo_update():
 @permission_required(Permission.FOLLOW)
 def user_delete():
     data = request.json
-    print(data)
-    user_id = data.get('user_id')
+    user_id = data.get('id')
     user_tobe_deleted = User.query.filter_by(id=user_id).first()
     logger.debug('User {} is deleting user {}'.format(session['LOGINNAME'], user_tobe_deleted.username))
-    if user_tobe_deleted.email == session['LOGINUSER']:
+    if user_tobe_deleted.phoneNum == session['LOGINUSER']:
         return jsonify({'status': 'fail', 'content': '无权操作'})
     else:
         if Role.query.filter_by(id=session['ROLE']).first().permissions < Role.query.filter_by(
@@ -563,14 +411,66 @@ def user_delete():
             return jsonify({'status': 'fail', 'content': '无权操作'})
         else:
             logger.info('try to delete {}:{}:{}'
-                        .format(user_tobe_deleted.id, user_tobe_deleted.username, user_tobe_deleted.email))
+                        .format(user_tobe_deleted.id, user_tobe_deleted.username, user_tobe_deleted.phoneNum))
             try:
-                # 9 means deleted
-                user_tobe_deleted.status = 9
-                db.session.add(user_tobe_deleted)
+                db.session.delete(user_tobe_deleted)
                 db.session.commit()
                 logger.info('user is deleted')
-                return jsonify({'status': 'OK', 'content': '用户删除成功'})
+                return jsonify({'status': 'true', 'content': '用户删除成功'})
             except Exception as e:
                 logger.error('Delete user fail:{}'.format(e))
-                return jsonify({'status': 'fail', 'content': '用户删除失败'})
+                return jsonify({'status': 'false', 'content': '用户删除失败'})
+
+
+@main.route('/user_update', methods=['POST'])
+@login_required
+@permission_required(Permission.FOLLOW)
+def user_update():
+    data = request.json
+    logger.debug(str(data))
+
+    username = data.get('username_update')
+    phone_number = data.get('phone_update')
+    role = data.get('role_update')
+    duty = data.get('duty_update')
+    password = data.get('password_update')
+
+    logger.info('User {} is update {}\'s info'.format(session['LOGINNAME'], id))
+    logger.debug('p{password} u{username} r{role} d{duty} p{phone_number}'.format_map(vars()))
+    print(type(role))
+    flag = False
+    if phone_number == session['LOGINUSER'] or Role.query.filter_by(id=session['ROLE']).first().permissions >= 127:
+        userinfo_tobe_changed = User.query.filter_by(phoneNum=phone_number).first()
+
+        if password:
+            userinfo_tobe_changed.password = password
+            flag = True
+            logger.debug('new password is {}.'.format(userinfo_tobe_changed.password_hash))
+        if username and username != userinfo_tobe_changed.username:
+            userinfo_tobe_changed.username = username
+            flag = True
+            logger.debug('new username is {}'.format(username))
+        if role and role != userinfo_tobe_changed.role:
+            userinfo_tobe_changed.role_id = role
+            flag = True
+            logger.debug('new role is {}'.format(role))
+        if duty and duty != userinfo_tobe_changed.duty:
+            userinfo_tobe_changed.duty = duty
+            flag = True
+            logger.debug('new duty is {}'.format(duty))
+
+        if flag:
+            try:
+                db.session.add(userinfo_tobe_changed)
+                db.session.commit()
+                logger.info('Userinfo of user id {} is changed'.format(id))
+                return jsonify({"status": "true", "content": "更新成功"})
+            except Exception as e:
+                logger.error('Userinfo change fail: {}'.format(e))
+                db.session.rollback()
+                return jsonify({"status": "false", "content": "数据更新失败，可能存在数据冲突"})
+        else:
+            return jsonify({"status": "false", "content": "无更新"})
+    else:
+        logger.info('This user do not permitted to alter user info')
+        return jsonify({"status": "false", "content": "无权限更新"})

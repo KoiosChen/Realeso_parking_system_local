@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "_macros.html" as macros %}
+
+
+
+{% block pagecontent %}
+    <div class="m-portlet">
+        <div class="m-portlet__head">
+            <div class="m-portlet__head-caption">
+                <div class="m-portlet__head-title">
+                    <h3 class="m-portlet__head-text">
+                        固定车位管理
+                    </h3>
+                </div>
+            </div>
+            <div class="m-portlet__head-tools">
+                <ul class="m-portlet__nav">
+                    <li class="m-portlet__nav-item">
+                        <a id="newOne" class="m-portlet__nav-link m-portlet__nav-link--icon">
+                            <i class="flaticon-add"></i>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="m-portlet__body">
+            <!--begin: Search Form -->
+            <div class="m-form m-form--label-align-right m--margin-top-20 m--margin-bottom-30">
+                <div class="row align-items-center">
+                    <div class="col-xl-10 order-2 order-xl-1">
+                        <div class="form-group m-form__group row align-items-center">
+                            <div class="col-md-6">
+                                <div class="input-group pull-right" id="fixed_daterange_search">
+                                    <input type="text" class="form-control m-input" readonly=""
+                                           placeholder="选择日期时间范围" id="dateTimeRange">
+                                    <div class="input-group-append">
+                                    <span class="input-group-text">
+                                        <i class="la la-calendar-check-o"></i>
+                                    </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="m-input-icon m-input-icon--left">
+                                    <input type="text" class="form-control m-input" placeholder="公司名称"
+                                           id="company_name">
+                                    <span class="m-input-icon__icon m-input-icon__icon--left">
+															<span>
+																<i class="la la-search"></i>
+															</span>
+														</span>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="m-input-icon m-input-icon--left">
+                                    <input type="text" class="form-control m-input" placeholder="车牌或车位..."
+                                           id="plate_or_space_number">
+                                    <span class="m-input-icon__icon m-input-icon__icon--left">
+															<span>
+																<i class="la la-search"></i>
+															</span>
+														</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-xl-2 order-1 order-xl-2 m--align-right">
+                        <button type="button" class="btn m-btn--pill    btn-primary" id="submit_search">
+                            <i class="la la-search"></i>
+                            查 询
+                        </button>
+
+                        <div class="m-separator m-separator--dashed d-xl-none"></div>
+                    </div>
+                </div>
+
+            </div>
+            <!--end: Search Form -->
+
+            <!--begin: Datatable -->
+            <div class="m_datatable" id="ajax_data"></div>
+            <!--end: Datatable -->
+        </div>
+    </div>
+
+    <!-- 模态框 For update（Modal） -->
+    <div class="modal fade" id="update_fixed_parking_record" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">
+                        修改固定车位信息
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+											<span aria-hidden="true">
+												&times;
+											</span>
+                    </button>
+                </div>
+                <form class="m-form m-form--fit m-form--label-align-right" id="m_form_update">
+                    <div class="modal-body">
+                        <div class="m-form__content">
+                            <div class="m-alert m-alert--icon alert alert-danger m--hide" role="alert"
+                                 id="m_form_update_msg">
+                                <div class="m-alert__icon">
+                                    <i class="la la-warning"></i>
+                                </div>
+                                <div class="m-alert__text">
+                                    填写信息有误，请检查重填后再次提交！
+                                </div>
+                                <div class="m-alert__close">
+                                    <button type="button" class="close" data-close="alert" aria-label="Close"></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-form-label col-lg-3 col-sm-12">
+                                记录编号
+                            </label>
+                            <div class="col-lg-6 col-md-9 col-sm-12">
+                                <input type="text" class="form-control m-input" name="record_uuid"
+                                       placeholder="请输入新车牌号" data-toggle="m-tooltip" readonly="true"
+                                       style="border-style:none" id="record_uuid">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-form-label col-lg-3 col-sm-12">
+                                车牌号
+                            </label>
+                            <div class="col-lg-6 col-md-9 col-sm-12">
+                                <input type="text" class="form-control m-input" name="update_plate_number"
+                                       placeholder="请输入新车牌号" data-toggle="m-tooltip"
+                                       title="" id="update_plate_number">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-form-label col-lg-3 col-sm-12">
+                                车位号
+                            </label>
+                            <div class="col-lg-6 col-md-9 col-sm-12">
+                                <input type="text" class="form-control m-input" name="update_space_number"
+                                       placeholder="请输入新车位号" data-toggle="m-tooltip"
+                                       title="" id="update_space_number">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-form-label col-lg-3 col-sm-12">
+                                公司名称
+                            </label>
+                            <div class="col-lg-6 col-md-9 col-sm-12">
+                                <div class="input-group">
+                                    <input type="text" class="form-control m-input" name="update_company_name"
+                                           placeholder="请输入新公司名称" id="update_company_name">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-form-label col-lg-3 col-sm-12">
+                                有效期限
+                            </label>
+                            <div class="col-lg-6 col-md-9 col-sm-12">
+                                <div class="input-group pull-right" id="m_daterangepicker_6">
+                                    <input type="text" class="form-control m-input" readonly=""
+                                           placeholder="选择日期时间范围" id="update_dateTimeRange" name="update_dateTimeRange">
+                                    <div class="input-group-append">
+                                    <span class="input-group-text">
+                                        <i class="la la-calendar-check-o"></i>
+                                    </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                        <button class="btn btn-default" id="update" name="update" type="submit">更新</button>
+                    </div>
+                </form>
+
+                <div class="holder">
+                </div>
+                <ul class="posts" id="itemContainer">
+                </ul>
+                <div class="holder">
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal -->
+    </div>
+    <!-- 模态框（Modal）end -->
+
+    <!-- 模态框 增加固定车位（Modal） -->
+    <div class="modal fade" id="add_fixed_parking_record" tabindex="-1" role="dialog" aria-labelledby="myModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">
+                        添加固定车位信息
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+											<span aria-hidden="true">
+												&times;
+											</span>
+                    </button>
+                </div>
+                <form class="m-form m-form--fit m-form--label-align-right" id="m_form_1">
+                    <div class="modal-body">
+                        <div class="m-form__content">
+                            <div class="m-alert m-alert--icon alert alert-danger m--hide" role="alert"
+                                 id="m_form_1_msg">
+                                <div class="m-alert__icon">
+                                    <i class="la la-warning"></i>
+                                </div>
+                                <div class="m-alert__text">
+                                    填写信息有误，请检查重填后再次提交！
+                                </div>
+                                <div class="m-alert__close">
+                                    <button type="button" class="close" data-close="alert" aria-label="Close"></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-form-label col-lg-3 col-sm-12">
+                                车牌号 *
+                            </label>
+                            <div class="col-lg-6 col-md-9 col-sm-12">
+                                <input type="text" class="form-control m-input" name="new_plate_number"
+                                       placeholder="请输入车牌号" data-toggle="m-tooltip"
+                                       title="请输入完整车牌" id="new_plate_number">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-form-label col-lg-3 col-sm-12">
+                                车位号
+                            </label>
+                            <div class="col-lg-6 col-md-9 col-sm-12">
+                                <input type="text" class="form-control m-input" name="new_space_number"
+                                       placeholder="请输入车位号" data-toggle="m-tooltip"
+                                       title="请输入对应的固定车位编号" id="new_space_number">
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-form-label col-lg-3 col-sm-12">
+                                公司名称 *
+                            </label>
+                            <div class="col-lg-6 col-md-9 col-sm-12">
+                                <div class="input-group">
+                                    <input type="text" class="form-control m-input" name="new_company_name"
+                                           placeholder="请输入公司名称" id="new_company_name">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group m-form__group row">
+                            <label class="col-form-label col-lg-3 col-sm-12">
+                                有效期限 *
+                            </label>
+                            <div class="col-lg-6 col-md-9 col-sm-12">
+                                <div class="input-group pull-right" id="m_daterangepicker_5">
+                                    <input type="text" class="form-control m-input" readonly=""
+                                           placeholder="选择日期时间范围" id="dateTimeRange2" name="dateTimeRange2">
+                                    <div class="input-group-append">
+                                    <span class="input-group-text">
+                                        <i class="la la-calendar-check-o"></i>
+                                    </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                        <input class="btn btn-default" id="submit" name="submit" value="提交" type="submit">
+                    </div>
+                </form>
+
+                <div class="holder">
+                </div>
+                <ul class="posts" id="itemContainer">
+                </ul>
+                <div class="holder">
+                </div>
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal -->
+    </div>
+{% endblock %}
+
+
+{% block scripts %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='jPages-master/css/jPages.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='jPages-master/css/animate.css') }}">
+    <script src="static/jPages-master/js/jPages.min.js"></script>
+    <script src="http://cdn.bootcss.com/bootstrap-daterangepicker/2.1.25/moment.min.js"></script>
+    <script src="../static/metronic/fixed_parking_space.js" type="text/javascript"></script>
+    <script src="../static/metronic/add_fixed_parking-form-controls.js" type="text/javascript"></script>
+    <script src="../static/metronic/bootstrap-daterangepicker.js" type="text/javascript"></script>
+    <script>
+        function editInfo(id, number_plate_now, space_number, company) {
+            $('#update_fixed_parking_record').find("input,textarea,select").val('').end();
+            $('#record_uuid').val(id);
+            $('#update_plate_number').attr('placeholder', number_plate_now);
+            $('#update_space_number').attr('placeholder', space_number);
+            $('#update_company_name').attr('placeholder', company);
+        }
+
+        function HTMerDel(uuid) {
+            if (confirm("确定要删除该信息吗？删除将不能恢复！")) {
+                var params = {'uuid': uuid};
+                $.ajax({
+                    type: "POST",          //提交方式          
+                    url: "fixed_parking_record_delete",  //提交的页面/方法名          
+                    data: JSON.stringify(params, null, '\t'),         //参数（如果没有参数：null）          
+                    contentType: "application/json; charset=utf-8",
+                    success: function (msg) {
+                        if (msg.status === 'true') {
+                            toastr.info(msg.content);
+                            $('#ajax_data').mDatatable().destroy();
+                            DatatableRemoteAjaxDemo.init();
+                        }
+                        else {
+                            toastr.error(msg.content);
+                        }
+
+                    },
+                    error: function (xhr, msg, e) {
+                        toastr.error("删除失败");
+                    }
+                });
+            }
+            else {
+                toastr.warning('取消删除')
+            }
+        }
+
+        $("#newOne").click(function () {
+            $("#add_fixed_parking_record").removeData("bs.modal").modal('show')
+        });
+
+        // toastr options
+        toastr.options = {
+            "closeButton": true, //是否显示关闭按钮
+            "debug": false, //是否使用debug模式
+            "progressBar": false,
+            "positionClass": "toast-top-center",//弹出窗的位置
+            "showDuration": "300",//显示的动画时间
+            "hideDuration": "3000",//消失的动画时间
+            "timeOut": "2000", //展现时间
+            "extendedTimeOut": "1000",//加长展示时间
+            "showEasing": "swing",//显示时的动画缓冲方式
+            "hideEasing": "linear",//消失时的动画缓冲方式
+            "showMethod": "fadeIn",//显示时的动画方式
+            "hideMethod": "fadeOut" //消失时的动画方式
+        };
+    </script>
+
+{% endblock %}

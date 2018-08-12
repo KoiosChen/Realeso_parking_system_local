@@ -8,23 +8,17 @@ from .. import logger
 @auth.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        email = request.form.get('email')
+        phoneNum = request.form.get('phoneNum')
         password = request.form.get('password')
         remember_me = request.form.get('remember_me')
-        logger.warning('Somebody is trying to login as {}'.format(email))
-        user = User.query.filter_by(email=email, status=1).first()
+        logger.warning('Somebody is trying to login as {}'.format(phoneNum))
+        user = User.query.filter_by(phoneNum=phoneNum, status=1).first()
         if user is not None and user.verify_password(password):
             session.permanent = True
             logger.warning('Username is {}'.format(user.username))
-            this_user = User.query.filter_by(email=email).first()
-            this_user_area = Area.query.filter_by(id=this_user.area).first()
-            if this_user.permit_machine_room == '0x0':
-                session['permit_machine_room'] = this_user_area.area_machine_room
-            else:
-                session['permit_machine_room'] = this_user.permit_machine_room
-            session['LOGINUSER'] = email
+            this_user = User.query.filter_by(phoneNum=phoneNum).first()
+            session['LOGINUSER'] = phoneNum
             session['LOGINNAME'] = this_user.username
-            session['LOGINAREA'] = this_user.area
             session['ROLE'] = this_user.role_id
             session['DUTY'] = this_user.duty
             session['SELFID'] = this_user.id

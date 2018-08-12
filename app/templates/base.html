@@ -74,7 +74,7 @@
                     <div class="m-stack__item m-brand  m-brand--skin-dark ">
                         <div class="m-stack m-stack--ver m-stack--general">
                             <div class="m-stack__item m-stack__item--middle m-brand__logo">
-                                <a href="index.html" class="m-brand__logo-wrapper">
+                                <a href="/parking_cashier" class="m-brand__logo-wrapper">
                                     <img alt=""
                                          src="../static/orca-logo.png"/>
                                 </a>
@@ -82,7 +82,7 @@
                             <div class="m-stack__item m-stack__item--middle m-brand__tools">
                                 <!-- BEGIN: Left Aside Minimize Toggle -->
                                 <a href="javascript:;" id="m_aside_left_minimize_toggle"
-                                   class="m-brand__icon m-brand__toggler m-brand__toggler--left m--visible-desktop-inline-block">
+                                   class="m-brand__icon m-brand__toggler m-brand__toggler--left m--visible-desktop-inline-block ">
                                     <span></span>
                                 </a>
                                 <!-- END -->
@@ -120,7 +120,7 @@
 
                                 <li class="m-menu__item  m-menu__item--submenu m-menu__item--rel"
                                     data-menu-submenu-toggle="click" data-redirect="true" aria-haspopup="true">
-                                    <span class="m-r-sm text-muted welcome-message">Welcome to Realeso parking lot management system</span>
+                                    <span class="m-r-sm text-muted welcome-message">Welcome to Realeso Parking Management System</span>
                                 </li>
                             </ul>
                         </div>
@@ -259,14 +259,13 @@
                 >
                     <ul class="m-menu__nav  m-menu__nav--dropdown-submenu-arrow ">
                         <li class="m-menu__item  m-menu__item--active" aria-haspopup="true">
-                            <a href="/" class="m-menu__link ">
+                            <a href="/parking_cashier" class="m-menu__link ">
                                 <i class="m-menu__link-icon flaticon-line-graph"></i>
                                 <span class="m-menu__link-title">
 										<span class="m-menu__link-wrap">
 											<span class="m-menu__link-text">
-												系统概览
+                                                <strong>收费</strong>
 											</span>
-
 										</span>
 									</span>
                             </a>
@@ -282,7 +281,44 @@
                             <a href="/charge_system" class="m-menu__link m-menu__toggle">
                                 <i class="m-menu__link-icon flaticon-search"></i>
                                 <span class="m-menu__link-text">
-                                        计费系统
+                                        出入场记录
+									</span>
+                                <i class="m-menu__ver-arrow la la-angle-right"></i>
+                            </a>
+                            <div class="m-menu__submenu ">
+                                <span class="m-menu__arrow"></span>
+                                <ul class="m-menu__subnav">
+                                    <li class="m-menu__item  m-menu__item--submenu" aria-haspopup="true"
+                                        data-menu-submenu-toggle="hover">
+                                        <a href="/parking_records" class="m-menu__link m-menu__toggle">
+                                            <i class="m-menu__link-bullet m-menu__link-bullet--dot">
+                                                <span></span>
+                                            </i>
+                                            <span class="m-menu__link-text">
+													停车记录
+												</span>
+                                        </a>
+                                    </li>
+                                    <li class="m-menu__item  m-menu__item--submenu" aria-haspopup="true"
+                                        data-menu-submenu-toggle="hover">
+                                        <a href="/parking_exit_record" class="m-menu__link m-menu__toggle">
+                                            <i class="m-menu__link-bullet m-menu__link-bullet--dot">
+                                                <span></span>
+                                            </i>
+                                            <span class="m-menu__link-text">
+													实时出场信息
+												</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                        <li class="m-menu__item  m-menu__item--submenu" aria-haspopup="true"
+                            data-menu-submenu-toggle="hover">
+                            <a href="/fixed_parking_space" class="m-menu__link m-menu__toggle">
+                                <i class="m-menu__link-icon flaticon-search"></i>
+                                <span class="m-menu__link-text">
+                                        固定车位管理
 									</span>
                                 <i class="m-menu__ver-arrow la la-angle-right"></i>
                             </a>
@@ -308,53 +344,12 @@
                                     </li>
                                     <li class="m-menu__item  m-menu__item--submenu" aria-haspopup="true"
                                         data-menu-submenu-toggle="hover">
-                                        <a href="/parameterSetting" class="m-menu__link m-menu__toggle">
-                                            <i class="m-menu__link-bullet m-menu__link-bullet--dot">
-                                                <span></span>
-                                            </i>
-                                            <span class="m-menu__link-text">
-													参数设置
-												</span>
-                                        </a>
-                                    </li>
-                                    <li class="m-menu__item " aria-haspopup="true">
-                                        <a href="/parking_lot_management" class="m-menu__link ">
-                                            <i class="m-menu__link-bullet m-menu__link-bullet--dot">
-                                                <span></span>
-                                            </i>
-                                            <span class="m-menu__link-text">
-													停车场管理
-												</span>
-                                        </a>
-                                    </li>
-                                    <li class="m-menu__item " aria-haspopup="true">
-                                        <a href="/devices_management" class="m-menu__link ">
-                                            <i class="m-menu__link-bullet m-menu__link-bullet--dot">
-                                                <span></span>
-                                            </i>
-                                            <span class="m-menu__link-text">
-													设备管理
-												</span>
-                                        </a>
-                                    </li>
-                                    <li class="m-menu__item  m-menu__item--submenu" aria-haspopup="true"
-                                        data-menu-submenu-toggle="hover">
-                                        <a href="/local_user_management" class="m-menu__link m-menu__toggle">
+                                        <a href="/user_management" class="m-menu__link m-menu__toggle">
                                             <i class="m-menu__link-bullet m-menu__link-bullet--dot">
                                                 <span></span>
                                             </i>
                                             <span class="m-menu__link-text">
 													用户管理
-												</span>
-                                        </a>
-                                    </li>
-                                    <li class="m-menu__item " aria-haspopup="true">
-                                        <a href="licence_control" class="m-menu__link ">
-                                            <i class="m-menu__link-bullet m-menu__link-bullet--dot">
-                                                <span></span>
-                                            </i>
-                                            <span class="m-menu__link-text">
-													许可证管理
 												</span>
                                         </a>
                                     </li>

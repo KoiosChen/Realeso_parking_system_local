@@ -11,9 +11,10 @@ class Config:
     SESSION_KEY_PREFIX = 'flask_session:'
     SESSION_PERMANENT = True
     SESSION_USE_SIGNER = True
+    JSON_AS_ASCII = False
 
     SQLALCHEMY_POOL_RECYCLE = 1800
-    FLASKY_ADMIN = 'peter.chen@mbqianbao.com'
+    FLASKY_ADMIN = '13817730962'
 
     UPLOADED_FILES_DEST = '/Users/Peter/Desktop/uploads'
 
@@ -29,8 +30,10 @@ class DevelopmentConfig(Config):
     DB_USERNAME = os.environ.get('DEV_DATABASE_USERNAME') or 'peter'
     DB_PASSWORD = os.environ.get('DEV_DATABASE_PASSWORD') or '123123'
     DB_HOST = os.environ.get('DEV_DATABASE_HOST') or '127.0.0.1'
-    DB_DATABASE = os.environ.get('DEV_DATABASE_DATABASE') or 'r2d2'
+    DB_DATABASE = os.environ.get('DEV_DATABASE_DATABASE') or 'realeso'
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://' + DB_USERNAME + ':' + DB_PASSWORD + '@' + DB_HOST + '/' + DB_DATABASE
+
+    SCHEDULER_VIEWS_ENABLED = True
 
 
 class TestingConfig(Config):
@@ -83,7 +86,7 @@ class ProductionConfig(Config):
     DB_USERNAME = os.environ.get('DATABASE_USERNAME') or 'peter'
     DB_PASSWORD = os.environ.get('DATABASE_PASSWORD') or '123123'
     DB_HOST = os.environ.get('DATABASE_HOST') or '127.0.0.1'
-    DB_DATABASE = os.environ.get('DATABASE_DATABASE') or 'r2d2'
+    DB_DATABASE = os.environ.get('DATABASE_DATABASE') or 'realeso'
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://' + DB_USERNAME + ':' + DB_PASSWORD + '@' + DB_HOST + '/' + DB_DATABASE
 
 

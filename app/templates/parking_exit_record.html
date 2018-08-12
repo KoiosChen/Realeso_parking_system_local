@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf %}
+{% import "_macros.html" as macros %}
+
+
+
+
+{% block subheader %}
+    <div class="m-subheader ">
+        <div class="d-flex align-items-center">
+            <div class="mr-auto">
+                <h3 class="m-subheader__title m-subheader__title--separator">
+                    停车记录
+                </h3>
+                <ul class="m-subheader__breadcrumbs m-nav m-nav--inline">
+                    <li class="m-nav__item m-nav__item--home">
+                        <a href="#" class="m-nav__link m-nav__link--icon">
+                            <i class="m-nav__link-icon la la-home"></i>
+                        </a>
+                    </li>
+                    <li class="m-nav__separator">
+                        -
+                    </li>
+                    <li class="m-nav__item">
+                        <a href="" class="m-nav__link">
+											<span class="m-nav__link-text">
+												出场记录
+											</span>
+                        </a>
+                    </li>
+                    <li class="m-nav__separator">
+                        -
+                    </li>
+                    <li class="m-nav__item">
+                        <a href="" class="m-nav__link">
+											<span class="m-nav__link-text">
+												当前出场记录查询
+											</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div>
+                <div class="m-dropdown m-dropdown--inline m-dropdown--arrow m-dropdown--align-right m-dropdown--align-push"
+                     data-dropdown-toggle="hover" aria-expanded="true">
+                    <a href="#"
+                       class="m-portlet__nav-link btn btn-lg btn-secondary  m-btn m-btn--outline-2x m-btn--air m-btn--icon m-btn--icon-only m-btn--pill  m-dropdown__toggle">
+                        <i class="la la-plus m--hide"></i>
+                        <i class="la la-ellipsis-h"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+{% block pagecontent %}
+    <div class="m-portlet">
+        <div class="m-portlet__body">
+            <!--begin: Datatable -->
+            <div class="m_datatable" id="ajax_data"></div>
+            <!--end: Datatable -->
+        </div>
+    </div>
+
+    <!-- 模态框（Modal） -->
+    <div class="modal fade" id="update" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">
+                        修正车牌号：
+                    </h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+											<span aria-hidden="true">
+												&times;
+											</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <p>摄像头编号: <input type="text" name="camera" id="camera" readonly="true" style="border-style:none"/></p>
+                    <p>当前车牌号: <input type="text" name="number_plate_now" id="number_plate_now" readonly="true"
+                                    style="border-style:none"/></p>
+                    <p>修正车牌号为: <input type="text" name="number_plate_after" id="number_plate_after"/></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                    <button type="button" class="btn btn-primary" onclick="update()" data-dismiss="modal">提交更改</button>
+                </div>
+
+                <div class="holder">
+                </div>
+                <ul class="posts" id="itemContainer">
+                </ul>
+                <div class="holder">
+                </div>
+
+
+            </div>
+            <!-- /.modal-content -->
+        </div>
+        <!-- /.modal -->
+    </div>
+    <!-- 模态框（Modal）end -->
+{% endblock %}
+
+
+{% block scripts %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='jPages-master/css/jPages.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='jPages-master/css/animate.css') }}">
+    <script src="static/jPages-master/js/jPages.min.js"></script>
+    <script src="http://cdn.bootcss.com/bootstrap-daterangepicker/2.1.25/moment.min.js"></script>
+    <script src="../static/metronic/parking_exit_record_search.js" type="text/javascript"></script>
+    <script src="../static/metronic/bootstrap-daterangepicker.js" type="text/javascript"></script>
+    <script>
+        function editInfo(camera, number_plate_now) {
+            $('#update').find("input,textarea,select").val('').end();
+            $('#camera').val(camera);
+            $('#number_plate_now').val(number_plate_now);
+        }
+
+        //提交更改
+        function update() {
+            //获取模态框数据
+            var camera = $('#camera').val();
+            var edit_number_plate = $('#number_plate_after').val();
+
+            if (edit_number_plate) {
+                $.ajax({
+                    type: "POST",
+                    url: "parking_exit_number_plate_update",
+                    data: {"camera": camera, "number_plate": edit_number_plate},
+                    dataType: 'json',
+                    contentType: "application/x-www-form-urlencoded; charset=utf-8",
+                    success: function (result) {
+                        if (result.status === 'true') {
+
+                            $('#ajax_data').mDatatable().destroy();
+                            DatatableRemoteAjaxDemo.init();
+                            $("#update").modal('hide');
+                            toastr.info(result.content);
+                            //setTimeout("location.reload()", 1000);
+                        }
+                        else {
+                            toastr.warning(result.content);
+                        }
+                    },
+                    error: function (xhr, msg, e) {
+                        toastr.warning("系统繁忙");
+                    }
+                });
+            }
+            else {
+                toastr.warning("未输入任何内容")
+            }
+        }
+
+        // toastr options
+        toastr.options = {
+            "closeButton": true, //是否显示关闭按钮
+            "debug": false, //是否使用debug模式
+            "progressBar": false,
+            "positionClass": "toast-top-center",//弹出窗的位置
+            "showDuration": "300",//显示的动画时间
+            "hideDuration": "1000",//消失的动画时间
+            "timeOut": "2000", //展现时间
+            "extendedTimeOut": "1000",//加长展示时间
+            "showEasing": "swing",//显示时的动画缓冲方式
+            "hideEasing": "linear",//消失时的动画缓冲方式
+            "showMethod": "fadeIn",//显示时的动画方式
+            "hideMethod": "fadeOut" //消失时的动画方式
+        };
+    </script>
+
+{% endblock %}

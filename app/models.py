@@ -3,9 +3,7 @@ from . import db
 from flask_login import UserMixin, AnonymousUserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import login_manager
-import datetime
-from markdown import markdown
-import bleach
+from datetime import time
 
 
 @login_manager.user_loader
@@ -24,67 +22,71 @@ class Permission:
     ADMINISTER = 0x80
 
 
-class MachineRoom(db.Model):
-    __tablename__ = 'machineroom_list'
+class PermissionIP(db.Model):
+    __tablename__ = 'permission_ip'
+    ip = db.Column(db.String(20), primary_key=True)
+    remarks = db.Column(db.String(200))
+    create_time = db.Column(db.DateTime)
+
+
+class ApiConfigure(db.Model):
+    __tablename__ = 'api_configure'
+    id = db.Column(db.Integer, primary_key=True)
+    api_name = db.Column(db.String(20), nullable=False)
+    api_params = db.Column(db.String(100), nullable=False)
+    api_params_value = db.Column(db.String(200))
+
+
+class ParkingLot(db.Model):
+    __tablename__ = 'parking_lot'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(24), unique=True, nullable=False)
     address = db.Column(db.String(100), unique=True, nullable=False)
-    level = db.Column(db.Integer, nullable=True)
+    floors = db.Column(db.String(10))
+    floors_desc = db.Column(db.String(200))
+    parking_space_totally = db.Column(db.Integer, nullable=False)
+    free_minutes = db.Column(db.SmallInteger, nullable=False, default=15)
+    start_minutes = db.Column(db.SmallInteger, nullable=False, default=60)
+    pay_interval = db.Column(db.SmallInteger, nullable=False, default=30)
+    effective_duration = db.Column(db.SmallInteger, nullable=False, default=20)
     status = db.Column(db.Integer, nullable=False, default=1)
     permit_value = db.Column(db.String(200))
-    devices = db.relationship('Device', backref='machine_room')
+    devices = db.relationship('Camera', backref='parking_lot')
+    parking_lot_detail = db.relationship('ParkingLotDetail', backref='parking_lot_detail')
 
     def __repr__(self):
-        return '<Machine Room %r>' % self.name
+        return '<Parking lot %r>' % self.name
 
 
-class Device(db.Model):
-    __tablename__ = 'device_list'
+class ParkingLotDetail(db.Model):
+    __tablename__ = 'parking_lot_detail'
     id = db.Column(db.Integer, primary_key=True)
+    parking_lot_id = db.Column(db.Integer, db.ForeignKey('parking_lot.id'))
+    name = db.Column(db.String(100), nullable=False, index=True)
+    value = db.Column(db.String(100), nullable=False, index=True)
+
+    def __repr__(self):
+        return '<Parking lot detail for %r>' % self.name
+
+
+class Camera(db.Model):
+    __tablename__ = 'camera'
+    device_number = db.Column(db.String(100), primary_key=True)
     device_name = db.Column(db.String(200), unique=True, nullable=False)
-    ip = db.Column(db.String(16), nullable=False)
-    login_name = db.Column(db.String(20))
-    login_password = db.Column(db.String(20))
-    machine_room_id = db.Column(db.Integer, db.ForeignKey('machineroom_list.id'))
-    enable_password = db.Column(db.String(20), nullable=True)
+    device_type = db.Column(db.SmallInteger)
+    parking_lot_id = db.Column(db.Integer, db.ForeignKey('parking_lot.id'))
     status = db.Column(db.Integer, nullable=False, default=1)
-    community = db.Column(db.String(20), index=True)
-    monitor_status = db.Column(db.SmallInteger)
-    monitor_fail_date = db.Column(db.DateTime)
-    monitor_rec_date = db.Column(db.DateTime)
-    mib_model = db.Column(db.SmallInteger)
     vendor = db.Column(db.String(100))
+    # 摄像头关联的闸机编号
+    gate_id = db.Column(db.String(100))
+    description = db.Column(db.String(200))
+    parking_record_entry_camera = db.relationship('ParkingRecords', backref='entry_camera',
+                                                  foreign_keys='ParkingRecords.entry_camera_id')
+    parking_record_exit_camera = db.relationship('ParkingRecords', backref='exit_camera',
+                                                 foreign_keys='ParkingRecords.exit_camera_id')
 
     def __repr__(self):
         return '<device name %r>' % self.device_name
-
-
-class SnmpInterface(db.Model):
-    __tablename__ = 'snmp_interface'
-    id = db.Column(db.Integer, primary_key=True)
-    device_id = db.Column(db.Integer, index=True)
-    snmp_sysname = db.Column(db.String(100))
-    snmp_if_desc = db.Column(db.String(50), index=True)
-    snmp_if_alias = db.Column(db.String(200))
-    snmp_if_physical_status = db.Column(db.SmallInteger)
-    snmp_if_protocal_status = db.Column(db.SmallInteger)
-    snmp_last_down_time = db.Column(db.DateTime)
-    snmp_last_rec_time = db.Column(db.DateTime)
-    snmp_last_in_speed = db.Column(db.Float)
-    snmp_last_out_speed = db.Column(db.Float)
-    data_storage = db.Column(db.String(100), default='redis')
-    data_path = db.Column(db.String(100), default='10')
-    snmp_last_fetch_status = db.Column(db.String(100), default='Success')
-    update_time = db.Column(db.DateTime)
-
-
-class SnmpModels(db.Model):
-    __tablename__ = 'snmp_models'
-    id = db.Column(db.Integer, primary_key=True)
-    vendor = db.Column(db.String(100), index=True)
-    device_type = db.Column(db.String(100))
-    oid_name = db.Column(db.String(50))
-    oid = db.Column(db.String(100))
 
 
 class Role(db.Model):
@@ -106,15 +108,15 @@ class Role(db.Model):
                           Permission.WRITE_ARTICLES |
                           Permission.MODERATE_COMMENTS, False),
             'REGION': (Permission.FOLLOW |
-                          Permission.COMMENT |
-                          Permission.WRITE_ARTICLES |
-                          Permission.MODERATE_COMMENTS |
-                       Permission.REGION_SUPPORT, False),
-            'MAN_ON_DUTY': (Permission.FOLLOW |
                        Permission.COMMENT |
                        Permission.WRITE_ARTICLES |
                        Permission.MODERATE_COMMENTS |
-                       Permission.REGION_SUPPORT |
+                       Permission.REGION_SUPPORT, False),
+            'MAN_ON_DUTY': (Permission.FOLLOW |
+                            Permission.COMMENT |
+                            Permission.WRITE_ARTICLES |
+                            Permission.MODERATE_COMMENTS |
+                            Permission.REGION_SUPPORT |
                             Permission.MAN_ON_DUTY, False),
             'SNOC': (Permission.FOLLOW |
                      Permission.COMMENT |
@@ -138,57 +140,24 @@ class Role(db.Model):
         return '<Role %r>' % self.name
 
 
-class Post(db.Model):
-    __tablename__ = 'posts'
-    id = db.Column(db.Integer, primary_key=True)
-    body = db.Column(db.Text)
-    alarm_id = db.Column(db.Integer)
-    timestamp = db.Column(db.DateTime, index=True, default=datetime.datetime.now)
-    author_id = db.Column(db.Integer)
-    body_html = db.Column(db.Text)
-
-    @staticmethod
-    def on_changed_body(target, value, oldvalue, initiator):
-        allowed_tags = ['a', 'abbr', 'acronym', 'b', 'blockquote', 'code',
-                        'em', 'i', 'li', 'ol', 'pre', 'strong', 'ul',
-                        'h1', 'h2', 'h3', 'p', 'img']
-        attrs = {
-            '*': ['class'],
-            'a': ['href', 'rel'],
-            'img': ['src', 'alt', 'width', 'height'],
-        }
-        target.body_html = bleach.linkify(bleach.clean(
-            markdown(value, output_format='html'),
-            tags=allowed_tags, attributes=attrs, strip=True))
-
-db.event.listen(Post.body, 'set', Post.on_changed_body)
-
-
-class ApiConfigure(db.Model):
-    __tablename__ = 'api_configure'
-    id = db.Column(db.Integer, primary_key=True)
-    api_name = db.Column(db.String(20), nullable=False)
-    api_params = db.Column(db.String(100), nullable=False)
-    api_params_value = db.Column(db.String(200))
-
-
 class User(UserMixin, db.Model):
     __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(64), unique=True, index=True)
-    phoneNum = db.Column(db.String(15), unique=True)
+    phoneNum = db.Column(db.String(15), unique=True, index=True)
     username = db.Column(db.String(64), index=True)
     role_id = db.Column(db.Integer, db.ForeignKey('roles.id'))
-    area = db.Column(db.Integer)
-    duty = db.Column(db.Integer)
-    permit_machine_room = db.Column(db.String(200))
+    duty = db.Column(db.SmallInteger, db.ForeignKey('job_desc.job_id'))
     password_hash = db.Column(db.String(128))
     status = db.Column(db.SmallInteger)
+    cashier = db.relationship('ParkingRecords', backref='cashier')
+    registrar = db.relationship('FixedParkingSpace', backref='registrar')
+    blacklist = db.relationship('BlackList', backref='registrar')
+    modifier = db.relation('NumberPlateModification', backref='modifier')
 
     def __init__(self, **kwargs):
         super(User, self).__init__(**kwargs)
         if self.role is None:
-            if self.email == current_app.config['FLASKY_ADMIN']:
+            if self.phoneNum == current_app.config['FLASKY_ADMIN']:
                 self.role = Role.query.filter_by(permissions=0xff).first()
             if self.role is None:
                 self.role = Role.query.filter_by(default=True).first()
@@ -227,85 +196,15 @@ class User(UserMixin, db.Model):
         return '<User %r>' % self.username
 
 
-class AccountInfo(db.Model):
-    __tablename__ = 'account'
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(30), nullable=False, index=True)
-    password = db.Column(db.String(40))
-    interface = db.Column(db.String(10), index=True)
-    sub_int = db.Column(db.String(5), index=True)
-    ip = db.Column(db.String(20))
-    mac = db.Column(db.String(30), index=True)
-    bas_name = db.Column(db.String(20))
-    create_time = db.Column(db.DateTime)
-    update_time = db.Column(db.DateTime)
-
-    def __repr__(self):
-        return '<ACCOUNT INFO -> USERNAME: %r>' % self.username
-
-
-class Log(db.Model):
-    __tablename__ = 'log'
-    id = db.Column(db.Integer, primary_key=True)
-    operator = db.Column(db.String(64), index=True, nullable=False)
-    machine_room_id = db.Column(db.Integer, nullable=False)
-    mac = db.Column(db.String(28), nullable=False)
-    customer_number = db.Column(db.String(64), nullable=False)
-    type = db.Column(db.SmallInteger, nullable=False)
-    create_time = db.Column(db.DateTime, nullable=False)
-
-
-class AreaMachineRoom(db.Model):
-    __tablename__ = 'area_machine_room'
-    id = db.Column(db.Integer, primary_key=True)
-    area_id = db.Column(db.Integer, index=True, nullable=False)
-    permit_machine_room = db.Column(db.Integer, nullable=False)
-
-
 class Area(db.Model):
     __tablename__ = 'area'
     id = db.Column(db.Integer, primary_key=True)
     area_name = db.Column(db.String(30), index=True, nullable=False)
     area_desc = db.Column(db.String(200))
-    area_machine_room = db.Column(db.String(200))
+    area_parking_log = db.Column(db.String(200))
 
     def __repr__(self):
         return '<Area info: %r>' % self.area_name
-
-
-class SyncEvent(db.Model):
-    __tablename__ = 'sync_event'
-    event_id = db.Column(db.Integer, primary_key=True)
-    sub_id = db.Column(db.Integer, index=True)
-    sync_func = db.Column(db.String(100), index=True)
-    sync_device = db.Column(db.Integer)
-    start_time = db.Column(db.DateTime)
-    stop_time = db.Column(db.DateTime)
-    sync_status = db.Column(db.SmallInteger)
-    remark = db.Column(db.String(200), nullable=True)
-
-    def __reduce__(self):
-        return '<SyncEvent INFO -> %r>' % self.id + ' ' + self.sync_func
-
-
-class CallRecordDetail(db.Model):
-    __tablename__ = 'call_record_detail'
-    id = db.Column(db.Integer, primary_key=True)
-    phoneNum = db.Column(db.String(20), index=True)
-    respCode = db.Column(db.String(10), index=True)
-    callId = db.Column(db.String(40), index=True)
-    createDateInResp = db.Column(db.String(15), index=True)
-    create_time = db.Column(db.DateTime)
-    call_group = db.Column(db.String(32), index=True)
-
-
-class VoiceNotifyCallBack(db.Model):
-    __tablename__ = 'voice_notify_callback'
-    id = db.Column(db.Integer, primary_key=True)
-    phoneNum = db.Column(db.String(15), index=True)
-    state = db.Column(db.String(5))
-    callId = db.Column(db.String(40))
-    create_time = db.Column(db.DateTime)
 
 
 class DutySchedule(db.Model):
@@ -328,6 +227,7 @@ class JobDescription(db.Model):
     job_name = db.Column(db.String(20))
     job_desc = db.Column(db.String(100))
     alarm_type = db.Column(db.String(20))
+    user_duty = db.relationship('User', backref='user_duty', lazy='dynamic')
 
 
 class DutyAttendedTime(db.Model):
@@ -352,209 +252,6 @@ class TokenRecord(db.Model):
     create_time = db.Column(db.DateTime)
 
 
-class AlarmRecord(db.Model):
-    __tablename__ = 'alarm_record'
-    id = db.Column(db.Integer, primary_key=True)
-    content = db.Column(db.String(4096))
-    content_md5 = db.Column(db.String(32), index=True)
-    alarm_type = db.Column(db.SmallInteger, nullable=True, default=0)
-    alarm_level = db.Column(db.SmallInteger, nullable=True, default=1)
-    state = db.Column(db.SmallInteger)
-    lastCallId = db.Column(db.String(128), index=True)
-    calledTimes = db.Column(db.SmallInteger)
-    create_time = db.Column(db.DateTime)
-    call_group = db.Column(db.String(32), index=True)
-
-
-class UpsInfo(db.Model):
-    __tablename__ = 'ups_info'
-    id = db.Column(db.Integer, primary_key=True)
-    oid_dict = db.Column(db.String(200))
-    ip = db.Column(db.String(24))
-    name = db.Column(db.String(20))
-    vendeor = db.Column(db.String(20))
-    community = db.Column(db.String(20))
-
-
-class PonAlarmRecord(db.Model):
-    __tablename__ = 'pon_alarm_record'
-    id = db.Column(db.Integer, primary_key=True)
-    device_name = db.Column(db.String(100))
-    ip = db.Column(db.String(64))
-    frame = db.Column(db.String(2))
-    slot = db.Column(db.String(2))
-    port = db.Column(db.String(3))
-    ontid = db.Column(db.String(3), default='PON')
-    fail_times = db.Column(db.Integer)
-    status = db.Column(db.SmallInteger)
-    last_fail_time = db.Column(db.DateTime)
-    last_recovery_time = db.Column(db.DateTime)
-    alarmed_flag = db.Column(db.SmallInteger, default=0)
-    create_time = db.Column(db.DateTime)
-
-
-class CallTimeRange(db.Model):
-    __tablename__ = 'call_time_range'
-    id = db.Column(db.Integer, primary_key=True)
-    range_name = db.Column(db.String(100))
-    start_time = db.Column(db.Time, nullable=False)
-    stop_time = db.Column(db.Time, nullable=False)
-    day_adjust = db.Column(db.Integer, default=0)
-    valid_alarm_type = db.Column(db.String(20))
-    status = db.Column(db.SmallInteger, default=1)
-
-
-class SyslogAlarmConfig(db.Model):
-    __tablename__ = 'syslog_alarm_config'
-    id = db.Column(db.Integer, primary_key=True)
-    alarm_type = db.Column(db.String(10))
-    alarm_name = db.Column(db.String(100))
-    alarm_level = db.Column(db.String(10))
-    alarm_status = db.Column(db.SmallInteger)
-    alarm_keyword = db.Column(db.String(100))
-    create_time = db.Column(db.DateTime)
-
-
-class Syslog(db.Model):
-    __tablename__ = 'syslog'
-    id = db.Column(db.Integer, primary_key=True)
-    facility = db.Column(db.String(20))
-    serverty = db.Column(db.String(20))
-    device_ip = db.Column(db.String(40))
-    logmsg = db.Column(db.String(600))
-    logtime = db.Column(db.DateTime)
-
-
-class SyslogEmerg(db.Model):
-    __tablename__ = 'syslog_emerg'
-    id = db.Column(db.Integer, primary_key=True)
-    facility = db.Column(db.String(20))
-    serverty = db.Column(db.String(20))
-    device_ip = db.Column(db.String(40))
-    logmsg = db.Column(db.String(600))
-    logtime = db.Column(db.DateTime)
-
-
-class SyslogAlert(db.Model):
-    __tablename__ = 'syslog_alert'
-    id = db.Column(db.Integer, primary_key=True)
-    facility = db.Column(db.String(20))
-    serverty = db.Column(db.String(20))
-    device_ip = db.Column(db.String(40))
-    logmsg = db.Column(db.String(600))
-    logtime = db.Column(db.DateTime)
-
-
-class SyslogCrit(db.Model):
-    __tablename__ = 'syslog_crit'
-    id = db.Column(db.Integer, primary_key=True)
-    facility = db.Column(db.String(20))
-    serverty = db.Column(db.String(20))
-    device_ip = db.Column(db.String(40))
-    logmsg = db.Column(db.String(600))
-    logtime = db.Column(db.DateTime)
-
-
-class SyslogErr(db.Model):
-    __tablename__ = 'syslog_err'
-    id = db.Column(db.Integer, primary_key=True)
-    facility = db.Column(db.String(20))
-    serverty = db.Column(db.String(20))
-    device_ip = db.Column(db.String(40))
-    logmsg = db.Column(db.String(600))
-    logtime = db.Column(db.DateTime)
-
-
-class SyslogWarn(db.Model):
-    __tablename__ = 'syslog_warn'
-    id = db.Column(db.Integer, primary_key=True)
-    facility = db.Column(db.String(20))
-    serverty = db.Column(db.String(20))
-    device_ip = db.Column(db.String(40))
-    logmsg = db.Column(db.String(600))
-    logtime = db.Column(db.DateTime)
-
-
-class SyslogNotice(db.Model):
-    __tablename__ = 'syslog_notice'
-    id = db.Column(db.Integer, primary_key=True)
-    facility = db.Column(db.String(20))
-    serverty = db.Column(db.String(20))
-    device_ip = db.Column(db.String(40))
-    logmsg = db.Column(db.String(600))
-    logtime = db.Column(db.DateTime)
-
-
-class SyslogInfo(db.Model):
-    __tablename__ = 'syslog_info'
-    id = db.Column(db.Integer, primary_key=True)
-    facility = db.Column(db.String(20))
-    serverty = db.Column(db.String(20))
-    device_ip = db.Column(db.String(40))
-    logmsg = db.Column(db.String(600))
-    logtime = db.Column(db.DateTime)
-
-
-class SyslogDebug(db.Model):
-    __tablename__ = 'syslog_debug'
-    id = db.Column(db.Integer, primary_key=True)
-    facility = db.Column(db.String(20))
-    serverty = db.Column(db.String(20))
-    device_ip = db.Column(db.String(40))
-    logmsg = db.Column(db.String(600))
-    logtime = db.Column(db.DateTime)
-
-
-class OntAccountInfo(db.Model):
-    # 用途改为存放附加告警信息
-    __tablename__ = 'ont_account_info'
-    id = db.Column(db.Integer, primary_key=True)
-    hash_id = db.Column(db.String(256), nullable=False)
-    account_info = db.Column(db.String(256))
-
-
-class PiRegister(db.Model):
-    __tablename__ = 'pi_register'
-    sysid = db.Column(db.String(100), primary_key=True)
-    username = db.Column(db.String(50), index=True, nullable=False)
-    times = db.Column(db.Integer, default=0)
-    last_register_time = db.Column(db.DateTime)
-    status = db.Column(db.SmallInteger)
-
-    def __repr__(self):
-        return '<Pi Register: %r>' % self.sysid
-
-
-class PcapOrder(db.Model):
-    __tablename__ = 'pcap_order'
-    id = db.Column(db.String(128), primary_key=True)
-    account_id = db.Column(db.String(20), index=True, nullable=False)
-    login_name = db.Column(db.String(50), index=True, nullable=False)
-    username = db.Column(db.String(20), index=True, nullable=False)
-    question_description = db.Column(db.String(1024))
-    # status:
-    # 0->this user hasn't bind to a Pi
-    # 1->just created
-    # 2->processing
-    # 3->recapture
-    # 4->order finished
-    status = db.Column(db.SmallInteger, default=1)
-    create_time = db.Column(db.DateTime)
-
-
-class PcapResult(db.Model):
-    __tablename__ = 'pcap_result'
-    id = db.Column(db.String(128), primary_key=True)
-    sysid = db.Column(db.String(100), index=True)
-    pcap_order_id = db.Column(db.String(128), index=True)
-    pcap_filepath = db.Column(db.String(200))
-    r2d2_filepath = db.Column(db.String(200))
-    result_description = db.Column(db.String(1024))
-    speedtest = db.Column(db.String(50))
-    pingtest = db.Column(db.String(100))
-    create_time = db.Column(db.DateTime)
-
-
 class AnonymousUser(AnonymousUserMixin):
     def can(self, permissions):
         return False
@@ -562,20 +259,181 @@ class AnonymousUser(AnonymousUserMixin):
     def is_administrator(self):
         return False
 
+
+class ParkingOrder(db.Model):
+    """
+    从互联网模块获取数据，然后将获取到的UUID作为list post给互联网端 uuid, number_plate, order_type, order_validate_start, order_validate_stop,reserved, status, create_time, update_time, discount
+    """
+    __tablename__ = 'parking_orders'
+
+    # 从互联网模块获取的订单号
+    uuid = db.Column(db.String(50), primary_key=True)
+
+    # 车牌
+    number_plate = db.Column(db.String(10), index=True, nullable=False)
+
+    # 1: 常租（常租信息在本地), 2: 包月, 3: 预约单次, 4: 充值消费, 5: 折扣
+    order_type = db.Column(db.SmallInteger, index=True, nullable=False)
+
+    # 订单的有效时长，例如常租用户、包月用户的有效期，是一个长期的订单。其它的，如单次的预约订单，则为订单当天的日期范围。
+    # 免费停车、单次预约等单次停车的车辆，每个订单均单独一条记录
+    order_validate_start = db.Column(db.DateTime, nullable=False, index=True)
+    order_validate_stop = db.Column(db.DateTime, nullable=False, index=True)
+
+    # 是否需要常租车位。包月、预约单次为1， 充值消费、折扣为0
+    reserved = db.Column(db.SmallInteger, nullable=False, index=True, default=0)
+
+    # 1 有效； 2 失效  本地模块生成字段
+    status = db.Column(db.SmallInteger, index=True, default=1)
+
+    # 订单创建时间， 本地模块生成字段
+    create_time = db.Column(db.DateTime, nullable=False, index=True)
+
+    # 订单状态更新时间， 本地模块生成字段
+    update_time = db.Column(db.DateTime, nullable=False, index=True)
+
+    # 默认不需要互联网模块提供，默认是1， 就是该时段全免；如果是打折，例如8折，则专递0.2
+    discount = db.Column(db.Float, default=1.0)
+
+    order_and_record = db.relationship('OrderAndRecords', backref='order')
+
+    fixed = db.relation('FixedParkingSpace', backref='fixed_order')
+
+
+class ParkingRecords(db.Model):
+    """
+    记录进出场信息. 如果parking_order_id为空，则表示是临时停车。
+    parking_order_id, 可在进场的时候不填，如果出场的时候获取订单记录，特别是免费停车的记录等，则按照订单进行收费
+    fee 用于存放此次停车消费金额，免费停车、临时停车不可为空（ >= 0）
+    """
+    __tablename__ = 'parking_records'
+    uuid = db.Column(db.String(50), primary_key=True)
+
+    number_plate = db.Column(db.String(10), index=True, nullable=False)
+
+    entry_time = db.Column(db.DateTime, index=True, nullable=False)
+    entry_camera_id = db.Column(db.String(100), db.ForeignKey('camera.device_number'))
+    # 何时写入目前未定
+    entry_pic = db.Column(db.String(100), index=True)
+    entry_plate_number_pic = db.Column(db.String(100), index=True)
+    entry_unit_price = db.Column(db.Float, index=True, nullable=False, default=10)
+
+    # 出场填写
+    exit_time = db.Column(db.DateTime, index=True, nullable=True)
+    # 何时写入目前未定
+    exit_pic = db.Column(db.String(100), index=True)
+    exit_plate_number_pic = db.Column(db.String(100), index=True)
+    exit_camera_id = db.Column(db.String(100), db.ForeignKey('camera.device_number'))
+
+    # 出场填写
+    cashier_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    fee = db.Column(db.Float)
+
+    # 订单状态 1 出场 0 未出场
+    status = db.Column(db.SmallInteger, default=0, nullable=False)
+
+    # 0、 未匹配；
+    # XY, X : {1: '岗亭'，2: '服务中心', 3: '电子支付', 4:'来源摄像头'}  Y: {0: '表示来源，无操作', 1: '付费未出场', 2: '开闸', 3: '异常'}
+    # X 来源于用户权限
+    operate_source = db.Column(db.SmallInteger, default=0)
+
+    exit_validate_before = db.Column(db.DateTime)
+
+    create_time = db.Column(db.DateTime)
+
+    record_and_order = db.relationship('OrderAndRecords', backref='record')
+
+
+class OrderAndRecords(db.Model):
+    __tablename__ = 'order_and_records'
+    id = db.Column(db.Integer, primary_key=True)
+    record_id = db.Column(db.String(50), db.ForeignKey('parking_records.uuid'), index=True)
+    order_id = db.Column(db.String(50), db.ForeignKey('parking_orders.uuid'), index=True)
+
+    def __repr__(self):
+        return '<Order and Records: %r>' % self.id
+
+
+class FixedParkingSpace(db.Model):
+    """
+    每次登记产生一条新的记录，如果车牌有旧记录，则新记录的开始时间不能早于最后一条老记录的结束时间
+    """
+    __tablename__ = 'fixed_parking_space'
+    uuid = db.Column(db.String(50), primary_key=True)
+
+    # 指定停车位编号
+    specified_parking_space_code = db.Column(db.String(10))
+    company = db.Column(db.String(100))
+    # 租用地址
+    room = db.Column(db.String(20))
+
+    order_uuid = db.Column(db.String(50), db.ForeignKey('parking_orders.uuid'), index=True, unique=True)
+
+    status = db.Column(db.SmallInteger, default=1)
+
+    # 登记员名字从users表获取
+    registrar_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    create_time = db.Column(db.DateTime)
+
+
+class BlackList(db.Model):
+    __tablename__ = 'black_list'
+    uuid = db.Column(db.String(50), primary_key=True)
+    number_plate = db.Column(db.String(20), index=True, nullable=False)
+    reason = db.Column(db.String(200))
+    order_validate_start = db.Column(db.DateTime, nullable=False, index=True)
+    order_validate_stop = db.Column(db.DateTime, nullable=False, index=True)
+    # 登记员名字从users表获取
+    registrar_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    create_time = db.Column(db.DateTime)
+
+
+class ParkingAbnormalExitRecords(db.Model):
+    __tablename__ = 'parking_abnormal_exit_records'
+    uuid = db.Column(db.String(50), primary_key=True)
+    number_plate = db.Column(db.String(20), index=True, nullable=False)
+    camera_id = db.Column(db.String(100), db.ForeignKey('camera.device_number'), nullable=False)
+    exit_time = db.Column(db.DateTime, nullable=False)
+    exit_pic = db.Column(db.String(100), nullable=False)
+    exit_plate_number_pic = db.Column(db.String(100), nullable=False)
+    create_time = db.Column(db.DateTime)
+
+
+class NumberPlateModification(db.Model):
+    __tablename__ = 'number_plate_modification'
+    uuid = db.Column(db.String(50), primary_key=True)
+    # type 0 入场记录， 1 出场记录
+    type = db.Column(db.SmallInteger)
+    relate_record_id = db.Column(db.String(50))
+    before_number = db.Column(db.String(20))
+    after_number = db.Column(db.String(20))
+    # 登记员名字从users表获取
+    registrar_id = db.Column(db.Integer, db.ForeignKey('users.id'))
+    create_time = db.Column(db.DateTime)
+
+
 login_manager.anonymous_user = AnonymousUser
 PATH_PREFIX = '/Users/Peter/python/r2d2/app/'
 CONFIG_FILE_PATH = PATH_PREFIX + 'config_file/'
 UPLOAD_FOLDER = PATH_PREFIX + 'UploadFile/'
 CACTI_PIC_FOLDER = PATH_PREFIX + '/static/cacti_pic/'
 
+# 凡是有订单信息的，包括常租固定车位、包月等都属于订单park，无任何订单记录的是临时停车
+PARKING_TYPE = {1: '临时',
+                2: '订单',
+                3: '固定',
+                4: '非固定'}
 
-alarm_record_state = {1: '呼叫失败',
-                      2: '未定义',
-                      3: '被叫未接听',
-                      8: '已达最大呼叫次数, 并且未接听',
-                      9: '呼叫成功',
-                      99: '未呼叫'}
+# 夜间停车配置，从晚上19点到次日7点30
+NIGHT_PARKING = {'start': time(19, 00, 00), 'end': time(7, 30, 0)}
 
+# 法定假日停车时间配置，从早上7点30至晚间19点
+STATUTORY_HOLIDAY = {'start': time(7, 30, 0), 'end': time(19, 00, 00)}
+
+DEVICE_TYPE = {11: '入口闸机',
+               12: '出口闸机',
+               21: '入口摄像头',
+               22: '出口摄像头'}
 
 duty_schedule_status = {1: '正常',
                         2: '调休',
@@ -585,44 +443,6 @@ duty_schedule_status = {1: '正常',
                         6: '管理员删除',
                         7: '新增'}
 
-ALLOWED_EXTENSIONS = set(['pcap', 'pcapng'])
-
-syslog_serverty = {0: "emergency",
-                   1: "alert",
-                   2: "critical",
-                   3: "error",
-                   4: "warning",
-                   5: "notice",
-                   6: "info",
-                   7: "debug"
-                 }
-syslog_facility = {0: "kernel",
-                   1: "user",
-                   2: "mail",
-                   3: "daemaon",
-                   4: "auth",
-                   5: "syslog",
-                   6: "lpr",
-                   7: "news",
-                   8: "uucp",
-                   9: "cron",
-                   10: "authpriv",
-                   11: "ftp",
-                   12: "ntp",
-                   13: "security",
-                   14: "console",
-                   15: "cron",
-                   16: "local 0",
-                   17: "local 1",
-                   18: "local 2",
-                   19: "local 3",
-                   20: "local 4",
-                   21: "local 5",
-                   22: "local 6",
-                   23: "local 7"
-                 }
 aes_key = 'koiosr2d2c3p0000'
-max_ont_down_in_sametime = 4
 
-temp_threshold = {'min': 20, 'max': 30}
-humi_threshold = {'min': 15, 'max': 70}
+EXIT_GATE = 'g002'
