@@ -17,19 +17,18 @@ def permission_required(permission):
     return decorator
 
 
-def permission_ip():
-    def decorator(f):
-        @wraps(f)
-        def decorated_fuction(*args, **kwargs):
-            logger.info(
-                'IP {} is getting parking proposal'.format(
-                    request.headers.get('X-Forwarded-For', request.remote_addr)))
-            permission_ip_list = [ip.ip for ip in PermissionIP.query.all()]
-            if request.headers.get('X-Forwarded-For', request.remote_addr) not in permission_ip_list:
-                abort(jsonify({'code': 'fail', 'message': 'IP ' + request.remote_addr + ' not permitted', 'data': ''}))
-            return f(*args, **kwargs)
-        return decorated_fuction
-    return decorator
+def permission_ip(f):
+    @wraps(f)
+    def decorated_fuction(*args, **kwargs):
+        logger.info(
+            'IP {} is getting parking proposal'.format(
+                request.headers.get('X-Forwarded-For', request.remote_addr)))
+        permission_ip_list = [ip.ip for ip in PermissionIP.query.all()]
+        if request.headers.get('X-Forwarded-For', request.remote_addr) not in permission_ip_list:
+            abort(jsonify({'code': 'fail', 'message': 'IP ' + request.remote_addr + ' not permitted', 'data': ''}))
+        return f(*args, **kwargs)
+    return decorated_fuction
+
 
 
 def admin_required(f):

@@ -48,15 +48,18 @@ def cashier_check():
 @socketio.on('paid opening', namespace='/test')
 @login_required
 def paid_opening(data):
-    print(data)
-    parking_record_id = data.get('parking_record_id')
-    fee = eval(re.findall('(\d+\.?\d+)', data.get('fee'))[0])
-    parking_record = ParkingRecords.query.filter_by(uuid=parking_record_id).first()
-    if parking_record.exit_time:
-        parking_record.exit_validate_before = parking_record.exit_time + timedelta(minutes=20)
-    pay_result = do_pay(parking_record_id, fee, operate_source=10)
-    if pay_result:
-        open_gate(parking_record_id, action=1, operate_source=12)
-        emit('paid result', {'status': 'true', 'content': '已付费可离场'}, namespace='/test')
-    else:
-        emit('paid result', {'status': 'false', 'content': '付费失败'}, namespace='/test')
+    logger.debug(data)
+    try:
+        parking_record_id = data.get('parking_record_id')
+        fee = eval(re.findall('(\d+\.?\d+)', data.get('fee'))[0])
+        parking_record = ParkingRecords.query.filter_by(uuid=parking_record_id).first()
+        if parking_record.exit_time:
+            parking_record.exit_validate_before = parking_record.exit_time + timedelta(minutes=20)
+        pay_result = do_pay(parking_record_id, fee, operate_source=10)
+        if pay_result:
+            assert open_gate(parking_record_id, direction=1, operate_source=12), "开闸失败"
+            emit('paid result', {'status': 'true', 'content': '已付费可离场'}, namespace='/test')
+        else:
+            emit('paid result', {'status': 'false', 'content': '付费失败'}, namespace='/test')
+    except Exception as e:
+        logger.error(e)

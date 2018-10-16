@@ -15,6 +15,16 @@ import queue
 from flask_sqlalchemy import SQLAlchemy as SQLAlchemyBase
 from sqlalchemy.pool import NullPool
 from flask_socketio import SocketIO
+import sys
+import ctypes
+from .hardwareModule.plate_struct_class import *
+import platform
+sys_info = platform.system()
+if sys_info == "Linux":
+    from fdfs_client.client import *
+    fdfs_client = Fdfs_client('/etc/fdfs/client.conf')
+else:
+    fdfs_client = False
 
 
 def nesteddict():
@@ -26,10 +36,10 @@ def nesteddict():
 
 
 class SQLAlchemy(SQLAlchemyBase):
-  def apply_driver_hacks(self, app, info, options):
-    super(SQLAlchemy, self).apply_driver_hacks(app, info, options)
-    options['poolclass'] = NullPool
-    options.pop('pool_size', None)
+    def apply_driver_hacks(self, app, info, options):
+        super(SQLAlchemy, self).apply_driver_hacks(app, info, options)
+        options['poolclass'] = NullPool
+        options.pop('pool_size', None)
 
 
 # 用于存放监控记录信息，例如UPS前序状态，需要配置持久化
@@ -59,6 +69,7 @@ hdlr.setFormatter(formatter)
 logger.addHandler(hdlr)
 logger.setLevel(logging.DEBUG)
 
+p_msg_cb_func = []
 
 def create_app(config_name):
     app = Flask(__name__)

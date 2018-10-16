@@ -179,7 +179,7 @@
     {{ super() }}
     <script>
         $(document).ready(function () {
-            var socket = io.connect('http://127.0.0.1:5000/test');
+            let socket = io.connect('http://' + document.domain + ':' + location.port + '/test');
 
             socket.on('connect', function () {
                 socket.emit('cashier check');
@@ -192,23 +192,25 @@
                     $('#entry_time').text(msg.content.entry_time);
                     $('#pay_fee').text(msg.content.fee);
                     $('#parking_time').text(msg.content.totally_time);
-                    $('#entry_pic').attr('src', msg.content.entry_pic);
-                    $('#entry_plate_number_pic').attr('src', msg.content.entry_plate_number_pic);
+                    $('#entry_pic').attr('src', 'http://' + document.domain + '/' + msg.content.entry_pic);
+                    $('#entry_plate_number_pic').attr('src', 'http://' + document.domain + '/' + msg.content.entry_plate_number_pic);
                     $('#parking_record_id').text(msg.content.parking_record_id)
                 }
                 $('#exit_number_plate').text(msg.content.number_plate);
                 $('#exit_time').text(msg.content.exit_time);
-                $('#exit_pic').attr('src', msg.content.exit_pic);
-                $('#exit_number_plate_pic').attr('src', msg.content.exit_plate_number_pic);
+                $('#exit_pic').attr('src', 'http://' + document.domain + '/' + msg.content.exit_pic);
+                $('#exit_number_plate_pic').attr('src', 'http://' + document.domain + '/' + msg.content.exit_plate_number_pic);
             });
 
             $('#paid').click(function () {
-                var parking_record_id = $('#parking_record_id').text();
-                var pay_fee = $('#pay_fee').text();
+                alert('button id paid is clicked');
+                let parking_record_id = $('#parking_record_id').text();
+                let pay_fee = $('#pay_fee').text();
                 if (parking_record_id && pay_fee) {
+                    alert('emit to paid opening');
                     socket.emit('paid opening', {
                         'parking_record_id': parking_record_id,
-                        'fee': $('#pay_fee').text()
+                        'fee': pay_fee
                     });
                 }
                 else {

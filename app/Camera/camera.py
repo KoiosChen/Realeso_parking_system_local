@@ -3,17 +3,17 @@ from ..Inspector import entrance_check, exit_check
 from .. import socketio, redis_db, db, logger
 from ..models import Camera, ParkingAbnormalExitRecords
 from ..gate import gate_operator
-from ..LED import gate_led
 import json
 from uuid import uuid1
+from ..hardwareModule.LEDControlTCP import *
 
 
 def get_number_plate():
     return {"number_plate": "沪A589R0",
             "time": "2018-07-30 10:01:01",
             "camera": "c001",
-            "exit_pic": "/home/peter/1.jpg",
-            "exit_plate_number_pic": "http://www.w3school.com.cn/i/eg_tulip.jpg"}
+            "pic": "/home/peter/1.jpg",
+            "plate_number_pic": "http://www.w3school.com.cn/i/eg_tulip.jpg"}
 
 
 def entry_test():
@@ -36,17 +36,23 @@ def parking_scheduler(parking_info):
     device = Camera.query.filter(Camera.device_number.__eq__(camera_id)).first()
     # enter
     if device.device_type == 21:
+        logger.debug("车辆入场")
         check_result = entrance_check.entrance_check(parking_info)
         print(check_result)
         if check_result.get('status'):
             # 此处要修改，传入参数错误
-            gate_operator.open_gate(check_result['data']['uuid'], action=0, operate_source=42)
+            assert gate_operator.open_gate(check_result['data']['uuid'], direction=0, operate_source=42), "开闸失败"
             return {"status": True, "message": "{} 正常入场".format(parking_info.get('number_plate'))}
         else:
-            gate_led.entry_led(check_result.get('content'))
+            LED_char_show_voice_broadcast(device.led_id,
+                                          "{} 欢迎光临".format(parking_info.get('number_plate')), 1,
+                                          "{} 欢迎光临".format(parking_info.get('number_plate')))
             return {"status": False, "message": "不能进入，因为{}".format(check_result.get('content'))}
     # exit
     elif device.device_type == 22:
+        logger.debug("车辆出场")
+
+        # 异常处理
         old_record = redis_db.get(camera_id)
         if old_record:
             old_record = json.loads(old_record.decode())
@@ -64,8 +70,9 @@ def parking_scheduler(parking_info):
                 logger.error('Insert abnormal exit record fail for {}'.format(str(e)))
                 db.session.rollback()
 
+        # 进入出场检测
         redis_db.set(camera_id, json.dumps(parking_info))
         exit_result = exit_check.exit_check(parking_info, operate_source=40)
         return {"status": True,
                 "message": "{} 被摄像头{}拍摄到，{}".format(parking_info.get('number_plate'), parking_info.get('camera'),
-                                                     exit_result)}
+                                                    exit_result)}

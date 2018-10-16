@@ -3,15 +3,16 @@ from .. import logger, redis_db, db
 from . import main
 from ..decorators import permission_ip
 from ..Camera.camera import parking_scheduler
-from ..models import ParkingRecords, Camera, ParkingOrder
+from ..models import ParkingRecords, Camera, ParkingOrder, ParkingLot
 from ..Billing.pay_fee import do_pay, check_out
+from ..ParkingLot.free_parking_space import logically_free_parking_space
 from datetime import datetime, timedelta
 import json
 from ..gate.gate_operator import open_gate
 
 
 @main.route('/vehical_access', methods=['POST'])
-@permission_ip()
+@permission_ip
 def vehical_access():
     """
     车辆进出调度
@@ -33,7 +34,7 @@ def vehical_access():
 
 
 @main.route('/parking_status', methods=['POST'])
-@permission_ip()
+@permission_ip
 def parking_status():
     """
     停车状态请求
@@ -58,29 +59,81 @@ def parking_status():
         parking_status_result = {}
 
         if 0 in action:
-            pass
+            # 0 用于返回停车场剩余车位数, 此处的parking_Lot_id，先由action 2 来获取停车场id
+            current_remaining_parking_space, temporary_for_reserved_plates = \
+                logically_free_parking_space(data.get('parking_lot_id'))
+            return jsonify({'status': 'true',
+                            'data': {'current_remaining_parking_space': current_remaining_parking_space,
+                                     'temporary_for_reserved_plates': temporary_for_reserved_plates}})
         if 1 in action:
             # 1 用于查询对应车牌的最后停车记录
-            pass
+            last_parking_record = ParkingRecords.query.filter_by(number_plate=number_plate, status=0).order_by(
+                ParkingRecords.entry_time.desc()).first()
+            if last_parking_record:
+                return jsonify({'status': 'true', 'data': {'uuid': last_parking_record.uuid,
+                                                           'number_plate': last_parking_record.number_plate,
+                                                           'entry_time': last_parking_record.entry_time,
+                                                           'entry_unit_price': last_parking_record.entry_unit_price,
+                                                           'exit_time': last_parking_record.exit_time,
+                                                           'fee': last_parking_record.fee,
+                                                           'create_time': last_parking_record.create_time}})
+            else:
+                return jsonify({'status': 'false', 'data': {}, 'message': '获取该车牌{}最后入场（未出）记录失败'.format(number_plate)})
+
         if 2 in action:
-            # 2 用于返回付费后有效的出场时间，例如付费后20分钟内需离场，则在return的dict中增加此参数
-            pass
+            # 2 用于返回本地停车场相关参数信息
+            parking_info = ParkingLot.query.filter_by(status=1).first()
+            if parking_info:
+                return jsonify({'status': 'true', 'data': {'id': parking_info.id,
+                                                           'name': parking_info.name,
+                                                           'address': parking_info.address,
+                                                           'floors': parking_info.floors,
+                                                           'parking_space_totally': parking_info.parking_space_tatally,
+                                                           'free_minutes': parking_info.free_minutes,
+                                                           'start_minutes': parking_info.start_minutes,
+                                                           'pay_interval': parking_info.pay_interval,
+                                                           'effective_duration': parking_info.effective_duration}})
+            else:
+                return jsonify({'status': 'false', 'data': {}, 'message': '停车场信息获取失败'})
+
         if 3 in action:
             # 3 用于返回对应车牌号已下发，未消费的订单，含有效期
-            pass
+            the_parking_orders = ParkingRecords.query.filter_by(number_plate=number_plate, status=1).all()
+            catalog = ['uuid', 'number_plate', 'order_type', 'order_validate_start', 'order_validate_stop', 'reserved',
+                       'create_time', 'update_time', 'discount']
+            if the_parking_orders:
+                return jsonify({'status': 'true',
+                                'data': [dict(zip(catalog, [r.uuid, r.number_plate, r.order_type,
+                                                            r.order_validate_start,
+                                                            r.order_validate_stop, r.reserved,
+                                                            r.create_time, r.update_time, r.discount]))
+                                         for r in the_parking_orders]})
+            else:
+                return jsonify({'status': 'false', 'data': {}, 'message': '获取{}对应未消费订单失败'.format(number_plate)})
+
         if 4 in action:
             # 4 用于返回对应车牌所有停车记录
-            pass
+            catalog = ['uuid', 'number_plate', 'entry_time', 'entry_unit_price', 'exit_time', 'fee', 'status',
+                       'create_time']
+            all_parking_record = ParkingRecords.query.filter(number_plate=number_plate).all()
+            if all_parking_record:
+                return jsonify({'status': 'true', 'data': [dict(zip(catalog, [r.uuid, r.number_plate, r.entry_time,
+                                                                              r.entry_unit_price, r.exit_time,
+                                                                              r.fee,
+                                                                              r.status, r.create_time])) for r in
+                                                           all_parking_record]})
 
+            else:
+                return jsonify({'status': 'false', 'data': {}, 'message': '{}车牌对应停车记录获取失败'.format(number_plate)})
 
         return jsonify(parking_status_result)
     except Exception as e:
         logger.error(e)
-        return jsonify({'code': 'fail', 'message': 'job fail for ' + str(e), 'data': ''})
+        return jsonify({'status': 'false', 'message': 'job fail for ' + str(e), 'data': {}})
 
 
 @main.route('/parking_order', methods=['POST'])
-@permission_ip()
+@permission_ip
 def parking_order():
     """
     只允许PermissionIP中涉及的服务器访问
@@ -113,7 +166,7 @@ def parking_order():
 
 
 @main.route('/fee_online', methods=['POST'])
-@permission_ip()
+@permission_ip
 def fee_online():
     """
     json: {"uuid": "965a417a-9489-11e8-b1e6-8c8590c5a545",
@@ -135,7 +188,7 @@ def fee_online():
                                                             exit_time=now_time,
                                                             entry_price=parking_record.entry_unit_price)
             if fee is None and time_need_pay is None and free_order_uuid is None:
-                return jsonify({"status": "false",
+                return jsonify({"status": "paid",
                                 "message": "Paid, hurry to exit the parking lot",
                                 "data": {"uuid": data.get("uuid"),
                                          "fee": fee,
@@ -162,7 +215,7 @@ def fee_online():
 
 
 @main.route('/pay_online', methods=['POST'])
-@permission_ip()
+@permission_ip
 def pay_online():
     """
     json: {"uuid": "965a417a-9489-11e8-b1e6-8c8590c5a545",
@@ -205,7 +258,7 @@ def pay_online():
                         if exit_record:
                             exit_record = json.loads(exit_record.decode())
                             if exit_record.get('number_plate') == request_data.get('number_plate'):
-                                open_gate(parking_record.uuid, action=1, operate_source=32)
+                                assert open_gate(parking_record.uuid, direction=1, operate_source=32), "开闸失败"
                                 return jsonify(
                                     {'status': 'true',
                                      'message': 'Record {} {} Yuan succeed, gate opened}}'.format(
@@ -214,7 +267,7 @@ def pay_online():
                     return jsonify(
                         {'status': 'true',
                          'message': 'Record {} {} Yuan succeed，not exit yet}}'.format(request_data.get('number_plate'),
-                                                                                     fee),
+                                                                                      fee),
                          'data': {"uuid": request_data.get('uuid')}})
                 else:
                     return jsonify(

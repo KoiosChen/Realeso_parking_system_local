@@ -156,7 +156,10 @@ def do_pay(parking_record_id, fee, operate_source=None):
     try:
         logger.debug("Pay for the parking record {}".format(parking_record_id))
         parking_record = ParkingRecords.query.filter_by(uuid=parking_record_id).first()
-        parking_record.fee += fee
+        if parking_record.fee is None:
+            parking_record.fee = fee
+        else:
+            parking_record.fee += fee
         parking_record.operate_source = operate_source
         if session.get('SELFID'):
             parking_record.cashier_id = session.get('SELFID')
@@ -225,7 +228,7 @@ def check_out(number_plate, exit_time, entry_price):
         nomral = True
     else:
         do_over_entry_time = None
-        nomral = False
+        nomral = True
 
     date_dict, timedelta_in_date, free_order = bill_time(number_plate, exit_time, do_over_entry_time)
 

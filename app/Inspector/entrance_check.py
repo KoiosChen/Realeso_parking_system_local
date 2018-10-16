@@ -1,15 +1,18 @@
 from ..ParkingLot.free_parking_space import logically_free_parking_space
 from ..Billing.pay_fee import unit_price
 from .abnormal_inspect import entry_inspect
-from ..models import ParkingOrder, ParkingRecords, FixedParkingSpace, PARKING_TYPE, BlackList
+from ..models import ParkingOrder, ParkingRecords, FixedParkingSpace, PARKING_TYPE, BlackList, Camera
 from datetime import datetime
 from sqlalchemy import and_
 from .. import db, logger
 from uuid import uuid1
+from ..hardwareModule.LEDControlTCP import LED_char_show
 
 
 def record_parking(parking_info, parking_type):
     try:
+        camera_id = parking_info.get('camera')
+        device = Camera.query.filter(Camera.device_number.__eq__(camera_id)).first()
         record_id = str(uuid1())
         current_price = unit_price()
         parking_record = ParkingRecords(uuid=record_id,
@@ -23,6 +26,15 @@ def record_parking(parking_info, parking_type):
 
         db.session.add(parking_record)
         db.session.commit()
+        # 获取对应停车场的信息，停车场信息必须录入
+        parking_lot_info = Camera.query.filter(Camera.device_name.__eq__(camera_id)).first()
+
+        current_remaining_parking_space, temporary_for_reserved_plates = logically_free_parking_space(
+            parking_lot_info.parking_lot_id)
+        if current_remaining_parking_space <= 0:
+            LED_char_show(device.led_id, '车位已满', 60)
+        elif temporary_for_reserved_plates <= 0:
+            LED_char_show(device.led_id, '车位已满', 60)
 
         return {'status': True, 'content': PARKING_TYPE[parking_type] + '车辆入场', 'data': {'uuid': record_id}}
     except Exception as e:
@@ -95,8 +107,11 @@ def entrance_check(parking_info):
         return record_parking(parking_info=parking_info,
                               parking_type=2)
 
-    # 确认剩余车位是否足够，目前直接返回足够
-    free_parking_space = logically_free_parking_space(parking_info.get('camera', 1))
+    # 确认剩余车位是否足够。 返回临时车位空余数量，以及保留车位空余数量
+    parking_lot_info = Camera.query.filter(Camera.device_name.__eq__(parking_info.get('camera'))).first()
+
+    current_remaining_parking_space, temporary_for_reserved_plates = logically_free_parking_space(
+        parking_lot_info.parking_lot_id)
 
     """
     确认是否为临时车辆入场
@@ -104,7 +119,9 @@ def entrance_check(parking_info):
     """
     if parking_info['number_plate'] in blacklist:
         return {'status': False, 'content': '黑名单用户'}
-    elif free_parking_space == 0:
+    elif temporary_for_reserved_plates <= 0:
+        return {'status': False, 'content': '临时车位不足，需先满足预约车辆入场'}
+    elif current_remaining_parking_space <= 0:
         return {'status': False, 'content': '车位已满'}
     else:
         return record_parking(parking_info=parking_info,

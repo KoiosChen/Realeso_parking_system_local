@@ -7,9 +7,19 @@ from uuid import uuid1
 import json
 from ..Billing.pay_fee import do_pay, check_fee
 import requests
+import re
 
+
+def white_list_check(number_plate):
+    # 如果是警车或者无中文字符的军车，直接放行
+    # 要确认摄像头传输的车牌里是否含车牌颜色的中文
+    if re.search('警', number_plate) or not re.findall("[\u4e00-\u9fa5]+", number_plate):
+        return True
+    else:
+        return False
 
 def exit_check(parking_info, operate_source):
+    logger.debug("In the exit check process")
     number_plate = parking_info.get('number_plate')
     exit_time = parking_info.get('time')
     if isinstance(exit_time, str):
@@ -19,8 +29,12 @@ def exit_check(parking_info, operate_source):
                                                ParkingRecords.status.__eq__(0)).order_by(
         ParkingRecords.create_time.desc()).first()
 
+    if white_list_check(number_plate):
+        assert open_gate(entry_record.uuid, direction=1, operate_source=operate_source + 4), "开闸失败"
+        logger.debug("{}白名单用户，免费出场".format(number_plate))
+
     if not entry_record:
-        logger.debug('cannot find parking records')
+        logger.debug('cannot find the parking records')
         try:
             if not ParkingAbnormalExitRecords.query.filter_by(number_plate=number_plate,
                                                               exit_time=exit_time,
@@ -63,7 +77,7 @@ def exit_check(parking_info, operate_source):
         如果是订单停车。或者入场时没有任何订单的临时停车，在出场的时候，都会重新检查是否有合适的订单
         目前允许单次预约的客户在入场之后再点预约
         """
-        if entry_record.fee is not None and exit_time <= entry_record.exit_validate_before and operate_source >= 40:
+        if entry_record.fee is not None and entry_record.exit_validate_before and exit_time <= entry_record.exit_validate_before and operate_source >= 40:
             logger.debug('已付费出场')
 
             entry_record.exit_time = exit_time
@@ -72,16 +86,16 @@ def exit_check(parking_info, operate_source):
             entry_record.exit_camera_id = parking_info.get('camera')
             db.session.add(entry_record)
             db.session.commit()
-            open_gate(entry_record.uuid, action=1, operate_source=operate_source + 2)
-            return "{}}已付费{}}，正常出场".format(number_plate, entry_record.fee)
+            assert open_gate(entry_record.uuid, direction=1, operate_source=operate_source + 2), "开闸失败"
+            logger.debug("{}}已付费{}}，正常出场".format(number_plate, entry_record.fee))
 
-        elif entry_record.fee is not None and exit_time > entry_record.exit_validate_before and operate_source >= 40:
+        elif entry_record.fee is not None and entry_record.exit_validate_before and exit_time > entry_record.exit_validate_before and operate_source >= 40:
             print(exit_time, entry_record.exit_validate_before)
             total_fee, total_time, free_order = check_out(number_plate, exit_time, entry_record.entry_unit_price)
             logger.debug('超时未出场，需重新付费，需再付费{} {}'.format(total_fee, total_time))
-            return "{}已付费{}，离场最晚时间为{}，当前时间{}，超时未出场，请再付费{}".format(number_plate, entry_record.fee,
+            logger.debug("{}已付费{}，离场最晚时间为{}，当前时间{}，超时未出场，请再付费{}".format(number_plate, entry_record.fee,
                                                                   entry_record.exit_validate_before, exit_time,
-                                                                  total_fee)
+                                                                  total_fee))
         else:
             entry_record.exit_time = exit_time
             entry_record.exit_pic = parking_info.get('pic')
@@ -100,7 +114,8 @@ def exit_check(parking_info, operate_source):
 
             if free_order or checkout_amount == 0:
                 do_pay(entry_record.uuid, fee=0, operate_source=operate_source + 1)
-                open_gate(entry_record.uuid, action=1, operate_source=operate_source + 2)
+                assert open_gate(entry_record.uuid, direction=1, operate_source=operate_source + 2), "开闸失败"
+
                 if free_order:
                     redis_db.set('free_order_' + free_order, entry_record.uuid)
                     url = 'http://api.realeso.com/free_order'
@@ -118,6 +133,7 @@ def exit_check(parking_info, operate_source):
 
                     response = requests.post(url, value, headers=headers)
                     logger.debug(response.content)
+                logger.debug("{} 应付费 {}元， 直接出场".format(number_plate, checkout_amount))
 
             logger.debug('emit data to ws_test')
 
@@ -136,5 +152,5 @@ def exit_check(parking_info, operate_source):
                                           'parking_record_id': entry_record.uuid}
                                       }, namespace='/test')
 
-            return "{}找到入场记录{}，应付费{}元，已发送到收银台，可在服务中心、或者通过电子支付完成后出场".format(number_plate, entry_record.uuid,
-                                                                           checkout_amount)
+            logger.debug("{}找到入场记录{}，应付费{}元，已发送到收银台，可在服务中心、或者通过电子支付完成后出场".format(number_plate, entry_record.uuid,
+                                                                           checkout_amount))

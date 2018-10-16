@@ -27,14 +27,14 @@ def gen_file_name(filename, path=UPLOAD_FOLDER):
 IGNORED_FILES = set(['.gitignore'])
 
 
-@main.route('/', methods=['GET', 'POST'])
+@main.route('/', methods=['GET'])
 @login_required
 @permission_required(Permission.MAN_ON_DUTY)
 def index():
     return render_template("/parking_cashier.html")
 
 
-@main.route('/parking_cashier', methods=['GET', 'POST'])
+@main.route('/parking_cashier', methods=['GET'])
 def parking_cashier():
     return render_template("/parking_cashier.html")
 

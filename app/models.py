@@ -79,6 +79,7 @@ class Camera(db.Model):
     vendor = db.Column(db.String(100))
     # 摄像头关联的闸机编号
     gate_id = db.Column(db.String(100))
+    led_id = db.Column(db.String(100))
     description = db.Column(db.String(200))
     parking_record_entry_camera = db.relationship('ParkingRecords', backref='entry_camera',
                                                   foreign_keys='ParkingRecords.entry_camera_id')
@@ -333,7 +334,7 @@ class ParkingRecords(db.Model):
     status = db.Column(db.SmallInteger, default=0, nullable=False)
 
     # 0、 未匹配；
-    # XY, X : {1: '岗亭'，2: '服务中心', 3: '电子支付', 4:'来源摄像头'}  Y: {0: '表示来源，无操作', 1: '付费未出场', 2: '开闸', 3: '异常'}
+    # XY, X : {1: '岗亭'，2: '服务中心', 3: '电子支付', 4:'来源摄像头'}  Y: {0: '表示来源，无操作', 1: '付费未出场', 2: '开闸', 3: '异常', 4: '白名单免费开闸'}
     # X 来源于用户权限
     operate_source = db.Column(db.SmallInteger, default=0)
 
@@ -445,4 +446,4 @@ duty_schedule_status = {1: '正常',
 
 aes_key = 'koiosr2d2c3p0000'
 
-EXIT_GATE = 'g002'
+EXIT_GATE = 'g001'
