@@ -18,7 +18,6 @@ def vehical_access():
     车辆进出调度
     :return:
     """
-
     try:
         logger.debug('Receive data from api - vehical access. Request data: {}.'.format(str(request.json)))
         request_data = request.json['data']
@@ -53,19 +52,19 @@ def parking_status():
         # 目前以服务器本地时间为准
         exit_time = datetime.now()
 
-        # action为list
+        # action为int
         action = data.get('action')
 
         parking_status_result = {}
 
-        if 0 in action:
+        if action == 0:
             # 0 用于返回停车场剩余车位数, 此处的parking_Lot_id，先由action 2 来获取停车场id
             current_remaining_parking_space, temporary_for_reserved_plates = \
                 logically_free_parking_space(data.get('parking_lot_id'))
             return jsonify({'status': 'true',
                             'data': {'current_remaining_parking_space': current_remaining_parking_space,
                                      'temporary_for_reserved_plates': temporary_for_reserved_plates}})
-        if 1 in action:
+        if action == 1:
             # 1 用于查询对应车牌的最后停车记录
             last_parking_record = ParkingRecords.query.filter_by(number_plate=number_plate, status=0).order_by(
                 ParkingRecords.entry_time.desc()).first()
@@ -80,7 +79,7 @@ def parking_status():
             else:
                 return jsonify({'status': 'false', 'data': {}, 'message': '获取该车牌{}最后入场（未出）记录失败'.format(number_plate)})
 
-        if 2 in action:
+        if action == 2:
             # 2 用于返回本地停车场相关参数信息
             parking_info = ParkingLot.query.filter_by(status=1).first()
             if parking_info:
@@ -96,7 +95,7 @@ def parking_status():
             else:
                 return jsonify({'status': 'false', 'data': {}, 'message': '停车场信息获取失败'})
 
-        if 3 in action:
+        if action == 3:
             # 3 用于返回对应车牌号已下发，未消费的订单，含有效期
             the_parking_orders = ParkingRecords.query.filter_by(number_plate=number_plate, status=1).all()
             catalog = ['uuid', 'number_plate', 'order_type', 'order_validate_start', 'order_validate_stop', 'reserved',
@@ -111,7 +110,7 @@ def parking_status():
             else:
                 return jsonify({'status': 'false', 'data': {}, 'message': '获取{}对应未消费订单失败'.format(number_plate)})
 
-        if 4 in action:
+        if action == 4:
             # 4 用于返回对应车牌所有停车记录
             catalog = ['uuid', 'number_plate', 'entry_time', 'entry_unit_price', 'exit_time', 'fee', 'status',
                        'create_time']
@@ -139,7 +138,6 @@ def parking_order():
     只允许PermissionIP中涉及的服务器访问
     :return:
     """
-
     try:
         logger.debug('Receive data from api {}.'.format(str(request.json)))
         data = request.json['data']
@@ -176,6 +174,7 @@ def fee_online():
              free_order_uuid -> 对应的免费停车订单ID（充值消费订单）
     """
     try:
+        parking_lot_info = ParkingLot.query.filter_by(status=1).first()
         now_time = datetime.now()
         data = request.json['data']
         if not data:
@@ -190,25 +189,24 @@ def fee_online():
             if fee is None and time_need_pay is None and free_order_uuid is None:
                 return jsonify({"status": "paid",
                                 "message": "Paid, hurry to exit the parking lot",
-                                "data": {"uuid": data.get("uuid"),
-                                         "fee": fee,
+                                "data": {"fee": fee,
                                          "time_need_pay": str(time_need_pay),
                                          "free_order_uuid": str(free_order_uuid),
-                                         "localtime": now_time}})
+                                         "paid_time": now_time,
+                                         "effective_duration": parking_lot_info.effective_duration}})
             else:
                 return jsonify({"status": "true",
                                 "message": "Fee application is normal",
-                                "data": {"uuid": data.get("uuid"),
-                                         "fee": fee,
+                                "data": {"fee": fee,
                                          "time_need_pay": str(time_need_pay),
                                          "free_order_uuid": str(free_order_uuid),
-                                         "localtime": now_time}})
+                                         "paid_time": now_time,
+                                         "effective_duration": parking_lot_info.effective_duration}})
         else:
             return jsonify(
                 {"status": "false",
                  "message": "Cannot find the entry record of number plate {}".format(data.get('number_plate')),
-                 "data": {"uuid": data.get("uuid"),
-                          "localtime": now_time}})
+                 "data": {"localtime": now_time}})
     except Exception as e:
         logger.error(e)
         return jsonify({"status": "false", "message": str(e)})
@@ -227,6 +225,7 @@ def pay_online():
     """
 
     try:
+        parking_lot_info = ParkingLot.query.filter_by(status=1).first()
         logger.debug('Receive data from api pay online {}.'.format(str(request.json)))
         request_data = request.json['data']
 
@@ -248,7 +247,8 @@ def pay_online():
             else:
 
                 parking_record.exit_validate_before = datetime.strptime(request_data.get("paid_time"),
-                                                                        "%Y-%m-%d %H:%M:%S") + timedelta(minutes=20)
+                                                                        "%Y-%m-%d %H:%M:%S") + timedelta(
+                    minutes=parking_lot_info.effective_duration)
                 pay_result = do_pay(parking_record.uuid, fee, operate_source=31)
                 if pay_result:
                     # 如果支付成功，则查看是否车辆已在出口，若在出口则直接开闸

@@ -1,0 +1,897 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>LogSearchClass</class>
+ <widget class="QWidget" name="LogSearchClass">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>827</width>
+    <height>604</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>LogSearch</string>
+  </property>
+  <widget class="Line" name="line_10">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>20</y>
+     <width>20</width>
+     <height>571</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Vertical</enum>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_deviceIP">
+   <property name="geometry">
+    <rect>
+     <x>300</x>
+     <y>30</y>
+     <width>71</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Device IP</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineEdit_nodename">
+   <property name="geometry">
+    <rect>
+     <x>110</x>
+     <y>30</y>
+     <width>141</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="Line" name="line_9">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>801</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_nodename">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>30</y>
+     <width>81</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Device name</string>
+   </property>
+  </widget>
+  <widget class="Line" name="line_11">
+   <property name="geometry">
+    <rect>
+     <x>800</x>
+     <y>20</y>
+     <width>20</width>
+     <height>571</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Vertical</enum>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="lineEdit_deviceIP">
+   <property name="geometry">
+    <rect>
+     <x>380</x>
+     <y>30</y>
+     <width>131</width>
+     <height>20</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="Line" name="line_12">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>590</y>
+     <width>801</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line">
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>60</y>
+     <width>16</width>
+     <height>81</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Vertical</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_2">
+   <property name="geometry">
+    <rect>
+     <x>780</x>
+     <y>60</y>
+     <width>20</width>
+     <height>81</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Vertical</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_3">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>50</y>
+     <width>761</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="Line" name="line_4">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>130</y>
+     <width>761</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="comboBox_logtype">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>81</y>
+     <width>111</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <item>
+    <property name="text">
+     <string>All</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>By type</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>By time</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>By type and name</string>
+    </property>
+   </item>
+  </widget>
+  <widget class="QComboBox" name="comboBox_maintype">
+   <property name="geometry">
+    <rect>
+     <x>270</x>
+     <y>80</y>
+     <width>101</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <item>
+    <property name="text">
+     <string>All</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Alarm</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Abnormal</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Operation</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>Information</string>
+    </property>
+   </item>
+  </widget>
+  <widget class="QComboBox" name="comboBox_subtype">
+   <property name="geometry">
+    <rect>
+     <x>430</x>
+     <y>80</y>
+     <width>111</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <item>
+    <property name="text">
+     <string>ALL</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_ALARM_IN</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_ALARM_OUT</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_MOTDET_START</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_MOTDET_STOP</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_HIDE_ALARM_START</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_HIDE_ALARM_STOP</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_VCA_ALARM_START</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_VCA_ALARM_STOP</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>---Excp-------</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_VI_LOST</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_ILLEGAL_ACCESS</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_HD_FULL</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_HD_ERROR</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_DCD_LOST</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_IP_CONFLICT</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_NET_BROKEN</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REC_ERROR</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_IPC_NO_LINK</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_VI_EXCEPTION</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_IPC_IP_CONFLICT</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>----Oper-----</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_START_DVR</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_STOP_DVR</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_STOP_ABNORMAL</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REBOOT_DVR</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_LOGIN</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_LOGOUT</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_CFG_PARM</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_PLAYBYFILE</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_PLAYBYTIME</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_START_REC</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_STOP_REC</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_PTZCTRL</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_PREVIEW</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_MODIFY_TIME</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_UPGRADE</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_RECFILE_OUTPUT</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_FORMAT_HDD</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_CFGFILE_OUTPUT</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_CFGFILE_INPUT</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>----MINOR_LOCAL_COPYFILE</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_LOCKFILE</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_UNLOCKFILE</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_DVR_ALARM</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_IPC_ADD</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_IPC_DEL</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_IPC_SET</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_START_BACKUP</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_STOP_BACKUP</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_COPYFILE_START_TIME</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_COPYFILE_END_TIME</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_ADD_NAS</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_DEL_NAS</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LOCAL_SET_NAS</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_LOGIN</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_LOGOUT</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_START_REC</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_STOP_REC</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_START_TRANS_CHAN</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_STOP_TRANS_CHAN</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_GET_PARM</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_CFG_PARM</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_GET_STATUS</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_ARM</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_DISARM</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_REBOOT</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_START_VT</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_STOP_VT</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_UPGRADE</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_PLAYBYFILE</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_PLAYBYTIME</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_PTZCTRL</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_FORMAT_HDD</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_STOP</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_LOCKFILE</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_UNLOCKFILE</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_CFGFILE_OUTPUT</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_CFGFILE_INTPUT</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_RECFILE_OUTPUT</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_IPC_ADD</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_IPC_DEL</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_IPC_SET</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REBOOT_VCA_LIB</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_ADD_NAS</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_DEL_NAS</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REMOTE_SET_NAS</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>-----Info----</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_HDD_INFO</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_SMART_INFO</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REC_START</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REC_STOP</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_REC_OVERDUE</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LINK_START</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_LINK_STOP</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>MINOR_NET_DISK_INFO</string>
+    </property>
+   </item>
+  </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>80</y>
+     <width>61</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Query</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>210</x>
+     <y>80</y>
+     <width>61</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Main type</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_3">
+   <property name="geometry">
+    <rect>
+     <x>380</x>
+     <y>81</y>
+     <width>51</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Sub type</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_4">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>120</y>
+     <width>54</width>
+     <height>13</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Start</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_5">
+   <property name="geometry">
+    <rect>
+     <x>250</x>
+     <y>110</y>
+     <width>54</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>End</string>
+   </property>
+  </widget>
+  <widget class="QCheckBox" name="checkBox_smart">
+   <property name="geometry">
+    <rect>
+     <x>540</x>
+     <y>110</y>
+     <width>111</width>
+     <height>17</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>HDD smart info</string>
+   </property>
+  </widget>
+  <widget class="QTableWidget" name="logtableWidget">
+   <property name="geometry">
+    <rect>
+     <x>30</x>
+     <y>150</y>
+     <width>761</width>
+     <height>381</height>
+    </rect>
+   </property>
+   <column>
+    <property name="text">
+     <string>Log time</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>Main type</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>Sub type</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>Remote host</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>Describtion</string>
+    </property>
+   </column>
+  </widget>
+  <widget class="QPushButton" name="pushButton_searchlog">
+   <property name="geometry">
+    <rect>
+     <x>540</x>
+     <y>550</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Search log</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="pushButton_exit">
+   <property name="geometry">
+    <rect>
+     <x>660</x>
+     <y>550</y>
+     <width>75</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_6">
+   <property name="geometry">
+    <rect>
+     <x>50</x>
+     <y>550</y>
+     <width>141</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>Searching.......</string>
+   </property>
+  </widget>
+  <widget class="QDateTimeEdit" name="dateTimeEdit_start">
+   <property name="geometry">
+    <rect>
+     <x>90</x>
+     <y>110</y>
+     <width>151</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+  <widget class="QDateTimeEdit" name="dateTimeEdit_stop">
+   <property name="geometry">
+    <rect>
+     <x>310</x>
+     <y>110</y>
+     <width>151</width>
+     <height>22</height>
+    </rect>
+   </property>
+  </widget>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>

@@ -1,0 +1,25 @@
+<RCC>
+<qresource>
+    <file>../images/close.png</file>
+    <file>../images/location.png</file>
+    <file>../images/logo.jpg</file>
+    <file>../images/open.png</file>
+    <file>../images/pause.png</file>
+    <file>../images/fast.png</file>
+    <file>../images/play.png</file>
+    <file>../images/slow.png</file>
+    <file>../images/sound_off.png</file>
+    <file>../images/sound_on.png</file>
+    <file>../images/step_backward.png</file>
+    <file>../images/step_forward.png</file>
+    <file>../images/stop.png</file>
+    <file>../images/to_begin.png</file>
+    <file>../images/to_end.png</file>
+    <file>../images/capture.png</file>
+    <file>../images/login.bmp</file>
+    <file>../images/logout.bmp</file>
+    <file>../images/camera.bmp</file>
+    <file>../images/play.bmp</file>
+    <file>../images/tree.bmp</file>
+</qresource>
+</RCC>

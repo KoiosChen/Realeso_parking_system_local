@@ -27,7 +27,7 @@ def record_parking(parking_info, parking_type):
         db.session.add(parking_record)
         db.session.commit()
         # 获取对应停车场的信息，停车场信息必须录入
-        parking_lot_info = Camera.query.filter(Camera.device_name.__eq__(camera_id)).first()
+        parking_lot_info = Camera.query.filter(Camera.device_number.__eq__(camera_id)).first()
 
         current_remaining_parking_space, temporary_for_reserved_plates = logically_free_parking_space(
             parking_lot_info.parking_lot_id)
@@ -108,7 +108,7 @@ def entrance_check(parking_info):
                               parking_type=2)
 
     # 确认剩余车位是否足够。 返回临时车位空余数量，以及保留车位空余数量
-    parking_lot_info = Camera.query.filter(Camera.device_name.__eq__(parking_info.get('camera'))).first()
+    parking_lot_info = Camera.query.filter(Camera.device_number.__eq__(parking_info.get('camera'))).first()
 
     current_remaining_parking_space, temporary_for_reserved_plates = logically_free_parking_space(
         parking_lot_info.parking_lot_id)

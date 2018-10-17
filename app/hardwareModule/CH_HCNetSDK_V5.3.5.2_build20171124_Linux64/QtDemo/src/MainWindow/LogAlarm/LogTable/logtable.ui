@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>LogTableClass</class>
+ <widget class="QWidget" name="LogTableClass">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>701</width>
+    <height>87</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>LogTable</string>
+  </property>
+  <widget class="QTableWidget" name="logtableWidget">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>701</width>
+     <height>89</height>
+    </rect>
+   </property>
+   <column>
+    <property name="text">
+     <string>time</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>state</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>operation</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>devicee info</string>
+    </property>
+   </column>
+   <column>
+    <property name="text">
+     <string>error info</string>
+    </property>
+   </column>
+  </widget>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>

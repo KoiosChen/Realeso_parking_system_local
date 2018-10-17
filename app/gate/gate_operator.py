@@ -24,7 +24,8 @@ def open_gate(parking_record_id, direction=0, operate_source=None, debug=False):
             if direction == 0:
                 logger.debug('open entry gate {}'.format(parking_record.entry_camera_id))
             else:
-                logger.debug("open exit gate {}".format(parking_record.exit_camera_id))
+                logger.debug('open exit gate {}'.format(parking_record.exit_camera_id))
+                redis_db.delete(parking_record.exit_camera_id)
             db.session.add(parking_record)
             db.session.commit()
             return True
@@ -43,9 +44,13 @@ def open_gate(parking_record_id, direction=0, operate_source=None, debug=False):
             if parking_record.entry_camera_id in lUserIDs.keys():
                 logger.info('open entry gate {}'.format(parking_record.entry_camera_id))
                 assert NET_BARRIERGATE_CONTROL(lUserIDs.get(parking_record.entry_camera_id), 0), "开闸失败"
-                LED_char_show_voice_broadcast(parking_record.entry_camera_id.led_id,
-                                              "{} 欢迎光临".format(parking_record.number_plate), 1,
-                                              "{} 欢迎光临".format(parking_record.number_plate))
+                try:
+                    LED_char_show_voice_broadcast(parking_record.entry_camera_id.led_id,
+                                                  "{} 欢迎光临".format(parking_record.number_plate), 1,
+                                                  "{} 欢迎光临".format(parking_record.number_plate))
+                except Exception as e:
+                    pass
+
             else:
                 logger.error("入闸{}无登陆记录".format(parking_record.entry_camera_id))
                 return False
@@ -53,9 +58,13 @@ def open_gate(parking_record_id, direction=0, operate_source=None, debug=False):
             if parking_record.exit_camera_id in lUserIDs.keys():
                 logger.info("open exit gate {}".format(parking_record.exit_camera_id))
                 assert NET_BARRIERGATE_CONTROL(lUserIDs.get(parking_record.exit_camera_id), 0), "开闸失败"
-                LED_char_show_voice_broadcast(parking_record.exit_camera_id.led_id,
-                                              "{} 一路顺风".format(parking_record.number_plate), 1,
-                                              "{} 一路顺风".format(parking_record.number_plate))
+                try:
+                    LED_char_show_voice_broadcast(parking_record.exit_camera_id.led_id,
+                                                  "{} 一路顺风".format(parking_record.number_plate), 1,
+                                                  "{} 一路顺风".format(parking_record.number_plate))
+                except Exception as e:
+                    pass
+
                 redis_db.delete(parking_record.exit_camera_id)
             else:
                 logger.error("出闸{}无登陆记录".format(parking_record.exit_camera_id))

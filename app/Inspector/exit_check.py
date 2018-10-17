@@ -87,7 +87,7 @@ def exit_check(parking_info, operate_source):
             db.session.add(entry_record)
             db.session.commit()
             assert open_gate(entry_record.uuid, direction=1, operate_source=operate_source + 2), "开闸失败"
-            logger.debug("{}}已付费{}}，正常出场".format(number_plate, entry_record.fee))
+            logger.debug("{}已付费{}，正常出场".format(number_plate, entry_record.fee))
 
         elif entry_record.fee is not None and entry_record.exit_validate_before and exit_time > entry_record.exit_validate_before and operate_source >= 40:
             print(exit_time, entry_record.exit_validate_before)

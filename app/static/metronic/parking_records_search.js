@@ -78,12 +78,11 @@ var DatatableRemoteAjaxDemo = function () {
                     width: 180,
                     textAlign: 'center',
                     template: function (data) {
-                        let user_img = data.entry_plate_number_pic;
-                        http_img = "http://" + document.domain + "/" + user_img
+                        let http_img = "http://" + document.domain + data.entry_plate_number_pic;
 
                         output = '<div class="m-card-user m-card-user--lg">\
 								<div class="m-card-user__pic">\
-									<img src=' + user_img + ' class="m--marginless" alt="photo">\
+									<img src=' + http_img + ' class="m--marginless" alt="photo">\
 								</div>\
 								<div class="m-card-user__details">\
 									<span class="m-card-user__name">' + data.number_plate + '</span>\

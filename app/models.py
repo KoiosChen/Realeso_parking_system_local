@@ -45,6 +45,7 @@ class ParkingLot(db.Model):
     floors = db.Column(db.String(10))
     floors_desc = db.Column(db.String(200))
     parking_space_totally = db.Column(db.Integer, nullable=False)
+    parking_space_fixed = db.Column(db.Integer, nullable=False)
     free_minutes = db.Column(db.SmallInteger, nullable=False, default=15)
     start_minutes = db.Column(db.SmallInteger, nullable=False, default=60)
     pay_interval = db.Column(db.SmallInteger, nullable=False, default=30)

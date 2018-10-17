@@ -162,7 +162,7 @@ def parking_exit_record():
 
         data = [{'camera': exit_record.get('camera'),
                  'number_plate': exit_record.get('number_plate'),
-                 'exit_pic': exit_record.get('exit_plate_number_pic'),
+                 'exit_pic': exit_record.get('plate_number_pic'),
                  'exit_time': exit_record.get('time')}
                 for exit_record in exit_records]
 
