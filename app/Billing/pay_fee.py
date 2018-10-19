@@ -136,7 +136,7 @@ def bill_time(number_plate, exit_time, entry_time):
                                                            ro.order.order_validate_stop if ro.order.order_validate_stop < exit_time else exit_time,
                                                            discount=ro.order.discount)
 
-            elif ro.order.order_type == 4:
+            elif ro.order.order_type == 4 and ro.order.status == 1:
                 free_order = ro.order.uuid
 
     logger.debug('date dict: {} \n time delta: {}'.format(str(date_dict), str(time_delta_in_date)))
@@ -210,7 +210,7 @@ def check_out(number_plate, exit_time, entry_price):
 
     :param number_plate:
     :param exit_time:
-    :param entry_price:
+    :param entry_price:  这个变量可删除（2018-10-18）
     :return:
     """
 
@@ -221,12 +221,16 @@ def check_out(number_plate, exit_time, entry_price):
                                                ParkingRecords.status.__eq__(0)).order_by(
         ParkingRecords.create_time.desc()).first()
 
+    # 如果exit_validate_before存在，则表明已经付费
     if entry_record and entry_record.exit_validate_before and entry_record.exit_validate_before >= exit_time:
         return None, None, None
+
+    # 如果出场时间大于有效时间，则重新计算应付费用， normal为False，则表示不计算免费停车15分钟及首小时10元
     elif entry_record and entry_record.exit_validate_before and entry_record.exit_validate_before < exit_time:
         do_over_entry_time = entry_record.exit_validate_before
         nomral = True
     else:
+        # do_over_entry_time为None，则在bill_time中会根据车牌号获取实际的入场时间
         do_over_entry_time = None
         nomral = True
 
@@ -235,9 +239,16 @@ def check_out(number_plate, exit_time, entry_price):
     total_fee = 0
     total_pay_time = timedelta()
     total_time = timedelta()
+
+    order_flag = True if timedelta_in_date else False
+
+    # 获取数据库中的停车规则
     rules = parking_rules()
 
+    # 获取停车首日日期
     min_date = min([k for k in date_dict.keys()])
+
+    logger.debug('The min date（first day) is {}'.format(min_date))
 
     """
     计算每天所需计费时长，如果当天计费时长所产生的单价大于设置的当天封顶价，则当天价格按照封顶价计算
@@ -252,16 +263,23 @@ def check_out(number_plate, exit_time, entry_price):
         logger.debug(k)
         logger.debug(v)
         logger.debug(timedelta_in_date.get(k))
+        # tmax是当天最大的计时时间，一般为零点，如果是出场当天，则为出场时间
         tmax = max(v) if max(v) <= exit_time else exit_time
+
+        # sum的部分是免费时长，就是当天停车时间，减去免费的订单时间总和
         pay_time = tmax - min(v) - sum([] if not timedelta_in_date.get(k) else timedelta_in_date.get(k), timedelta())
+
+        # 矫正负计费，一般不应该出现这种情况
         pay_time = timedelta(seconds=0) if pay_time < timedelta(seconds=0) else pay_time
+
         logger.debug("Date: {}, 总计费时长 {}".format(k, pay_time))
 
-        billing_time = check_fee(pay_time, flag=True if (k == min_date) & nomral else False,
-                                 start_flag=False if len([k for k in date_dict.keys()]) > 1 else True & nomral)
+        billing_time = check_fee(pay_time, flag=True if (k == min_date) & nomral else False & order_flag,
+                                 start_flag=False if len(date_dict) > 1 else True & nomral & order_flag)
 
         logger.debug("Date: {}, 应付费时长 {}".format(k, billing_time))
 
+        # 确认当天停车费用是否超过当天封顶金额
         if billing_time * entry_price >= rules['max_fee_per_day']:
             total_fee += rules['max_fee_per_day']
             if k == min_date:
@@ -272,8 +290,8 @@ def check_out(number_plate, exit_time, entry_price):
         total_time += pay_time
 
     # 如果是首日入场则按照计费规则减去免费停车时间，并且考虑首次停车时间段，例如1小时收费xx元
-    remaining_time_fee = check_fee(total_pay_time, flag=check_fee_flag & nomral,
-                                   start_flag=False if len([k for k in date_dict.keys()]) > 1 else True & nomral)
+    remaining_time_fee = check_fee(total_pay_time, flag=check_fee_flag & nomral & order_flag,
+                                   start_flag=False if len(date_dict) > 1 else True & nomral & order_flag)
 
     logger.debug('remaining time is {}'.format(remaining_time_fee))
 
