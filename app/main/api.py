@@ -6,6 +6,7 @@ from ..Camera.camera import parking_scheduler
 from ..models import ParkingRecords, Camera, ParkingOrder, ParkingLot
 from ..Billing.pay_fee import do_pay, check_out
 from ..ParkingLot.free_parking_space import logically_free_parking_space
+from ..Inspector.exit_check import white_list_check
 from datetime import datetime, timedelta
 import json
 from ..gate.gate_operator import open_gate
@@ -87,7 +88,7 @@ def parking_status():
                                                            'name': parking_info.name,
                                                            'address': parking_info.address,
                                                            'floors': parking_info.floors,
-                                                           'parking_space_totally': parking_info.parking_space_tatally,
+                                                           'parking_space_totally': parking_info.parking_space_totally,
                                                            'free_minutes': parking_info.free_minutes,
                                                            'start_minutes': parking_info.start_minutes,
                                                            'pay_interval': parking_info.pay_interval,
@@ -97,7 +98,7 @@ def parking_status():
 
         if action == 3:
             # 3 用于返回对应车牌号已下发，未消费的订单，含有效期
-            the_parking_orders = ParkingRecords.query.filter_by(number_plate=number_plate, status=1).all()
+            the_parking_orders = ParkingOrder.query.filter_by(number_plate=number_plate, status=1).all()
             catalog = ['uuid', 'number_plate', 'order_type', 'order_validate_start', 'order_validate_stop', 'reserved',
                        'create_time', 'update_time', 'discount']
             if the_parking_orders:
@@ -114,7 +115,7 @@ def parking_status():
             # 4 用于返回对应车牌所有停车记录
             catalog = ['uuid', 'number_plate', 'entry_time', 'entry_unit_price', 'exit_time', 'fee', 'status',
                        'create_time']
-            all_parking_record = ParkingRecords.query.filter(number_plate=number_plate).all()
+            all_parking_record = ParkingRecords.query.filter_by(number_plate=number_plate).all()
             if all_parking_record:
                 return jsonify({'status': 'true', 'data': [dict(zip(catalog, [r.uuid, r.number_plate, r.entry_time,
                                                                               r.entry_unit_price, r.exit_time,
@@ -167,8 +168,7 @@ def parking_order():
 @permission_ip
 def fee_online():
     """
-    json: {"uuid": "965a417a-9489-11e8-b1e6-8c8590c5a545",
-           "number_plate": "沪A589R0"}
+    json: {"number_plate": "沪A589R0"}
     只允许PermissionIP中涉及的服务器访问
     :return: fee -> 总共需要支付的费用 , time_need_pay -> 打折或者免去包月（预约）等折扣（免费）时长后还需付费的时长，
              free_order_uuid -> 对应的免费停车订单ID（充值消费订单）
@@ -183,25 +183,35 @@ def fee_online():
         parking_record = ParkingRecords.query.filter(ParkingRecords.number_plate.__eq__(data.get('number_plate')),
                                                      ParkingRecords.status.__eq__(0)).first()
         if parking_record:
-            fee, time_need_pay, free_order_uuid = check_out(number_plate=data.get('number_plate'),
-                                                            exit_time=now_time,
-                                                            entry_price=parking_record.entry_unit_price)
-            if fee is None and time_need_pay is None and free_order_uuid is None:
+            if white_list_check(data.get('number_plate')):
                 return jsonify({"status": "paid",
-                                "message": "Paid, hurry to exit the parking lot",
-                                "data": {"fee": fee,
-                                         "time_need_pay": str(time_need_pay),
-                                         "free_order_uuid": str(free_order_uuid),
-                                         "paid_time": now_time,
-                                         "effective_duration": parking_lot_info.effective_duration}})
+                                "message": "plate number in the white list",
+                                "data": {"fee": 0,
+                                         "time_need_pay": 0,
+                                         "free_order_uuid": None,
+                                         "paid_time": 0,
+                                         "effective_duration": 0}})
+
             else:
-                return jsonify({"status": "true",
-                                "message": "Fee application is normal",
-                                "data": {"fee": fee,
-                                         "time_need_pay": str(time_need_pay),
-                                         "free_order_uuid": str(free_order_uuid),
-                                         "paid_time": now_time,
-                                         "effective_duration": parking_lot_info.effective_duration}})
+                fee, time_need_pay, free_order_uuid = check_out(number_plate=data.get('number_plate'),
+                                                                exit_time=now_time,
+                                                                entry_price=parking_record.entry_unit_price)
+                if fee is None and time_need_pay is None and free_order_uuid is None:
+                    return jsonify({"status": "paid",
+                                    "message": "Paid, hurry to exit the parking lot",
+                                    "data": {"fee": fee,
+                                             "time_need_pay": str(time_need_pay),
+                                             "free_order_uuid": str(free_order_uuid),
+                                             "paid_time": now_time,
+                                             "effective_duration": parking_lot_info.effective_duration}})
+                else:
+                    return jsonify({"status": "true",
+                                    "message": "Fee application is normal",
+                                    "data": {"fee": fee,
+                                             "time_need_pay": str(time_need_pay),
+                                             "free_order_uuid": str(free_order_uuid),
+                                             "paid_time": now_time,
+                                             "effective_duration": parking_lot_info.effective_duration}})
         else:
             return jsonify(
                 {"status": "false",
@@ -256,6 +266,7 @@ def pay_online():
                     for exit_camera in all_exit_cameras:
                         exit_record = redis_db.get(exit_camera.device_number)
                         if exit_record:
+                            logger.debug("The vehical is at the exit gate {}".format(str(exit_record)))
                             exit_record = json.loads(exit_record.decode())
                             if exit_record.get('number_plate') == request_data.get('number_plate'):
                                 assert open_gate(parking_record.uuid, direction=1, operate_source=32), "开闸失败"

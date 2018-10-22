@@ -228,22 +228,22 @@ def check_out(number_plate, exit_time, entry_price):
     # 如果出场时间大于有效时间，则重新计算应付费用， normal为False，则表示不计算免费停车15分钟及首小时10元
     elif entry_record and entry_record.exit_validate_before and entry_record.exit_validate_before < exit_time:
         do_over_entry_time = entry_record.exit_validate_before
-        nomral = True
+        normal = False
     else:
         # do_over_entry_time为None，则在bill_time中会根据车牌号获取实际的入场时间
         do_over_entry_time = None
-        nomral = True
+        normal = True
 
     date_dict, timedelta_in_date, free_order = bill_time(number_plate, exit_time, do_over_entry_time)
 
     total_fee = 0
-    total_pay_time = timedelta()
     total_time = timedelta()
-
-    order_flag = True if timedelta_in_date else False
 
     # 获取数据库中的停车规则
     rules = parking_rules()
+
+    # 判断是否为订单类型的停车用户
+    order_flag = False if timedelta_in_date else True
 
     # 获取停车首日日期
     min_date = min([k for k in date_dict.keys()])
@@ -255,6 +255,8 @@ def check_out(number_plate, exit_time, entry_price):
     如果当天未达到封顶价，则将时间计入计费时间内
     如果第一天没有达到封顶价，则check_fee_flag为True
     """
+
+    daily_duration = {}
 
     # 计算最终费用时，确定是否包含第一天
     check_fee_flag = True
@@ -274,27 +276,61 @@ def check_out(number_plate, exit_time, entry_price):
 
         logger.debug("Date: {}, 总计费时长 {}".format(k, pay_time))
 
-        billing_time = check_fee(pay_time, flag=True if (k == min_date) & nomral else False & order_flag,
-                                 start_flag=False if len(date_dict) > 1 else True & nomral & order_flag)
-
-        logger.debug("Date: {}, 应付费时长 {}".format(k, billing_time))
-
-        # 确认当天停车费用是否超过当天封顶金额
-        if billing_time * entry_price >= rules['max_fee_per_day']:
-            total_fee += rules['max_fee_per_day']
-            if k == min_date:
-                check_fee_flag = False
-        else:
-            total_pay_time += pay_time
-
         total_time += pay_time
 
-    # 如果是首日入场则按照计费规则减去免费停车时间，并且考虑首次停车时间段，例如1小时收费xx元
-    remaining_time_fee = check_fee(total_pay_time, flag=check_fee_flag & nomral & order_flag,
-                                   start_flag=False if len(date_dict) > 1 else True & nomral & order_flag)
+        daily_duration[k] = pay_time
 
-    logger.debug('remaining time is {}'.format(remaining_time_fee))
+    '''
+    check_fee_flag 的作用是，如果第一天就已经是封顶计费了，那么第一天的时长就不会加到total_pay_time中，也就是从第二天开始计费,
+    这个时候，如果还有需要计费的时间，一定是第一天之后的，那么就没有首小时不满一小时按一小时计费的规则，同样不会有起始免费15分钟的规则
 
-    total_fee += remaining_time_fee * entry_price
+    normal 目前始终为true
+
+    order_flag，只要有订单就为false
+
+
+    '''
+
+    logger.debug("daily duration is {}".format(daily_duration))
+    logger.debug("the min date is {}".format(min_date))
+
+    logger.debug("The length of daily duration is {}".format(len(daily_duration)))
+    if len(daily_duration) > 1:
+        for dk, dv in daily_duration.items():
+            logger.debug("daily_duration's key is {}, value is {}".format(dk, dv))
+            if dk == min_date:
+                logger.debug("Find the min date in daily duration")
+                if dv < rules['free_minutes'] + rules['start_minutes']:
+                    logger.debug(
+                        "The first day's parking time less than {} + {}, it is {}".format(rules['free_minutes'],
+                                                                                          rules['start_minutes'], dv))
+                    if dv + daily_duration[dk + timedelta(days=1)] <= rules['free_minutes'] + rules['start_minutes']:
+                        logger.debug(
+                            "The next day's parking time is not enough to lend the minutes to the first day, it is {}".format(
+                                daily_duration[dk + timedelta(days=1)]))
+                        daily_duration[dk] += daily_duration[dk + timedelta(days=1)]
+                        daily_duration[dk + timedelta(days=1)] = timedelta(seconds=0)
+                    else:
+                        logger.debug(
+                            "The next day's parking time is enough to lend the minutes to the first day, it is {}".format(
+                                daily_duration[dk + timedelta(days=1)]))
+                        daily_duration[dk] = rules['free_minutes'] + rules['start_minutes']
+                        daily_duration[dk + timedelta(days=1)] -= rules['free_minutes'] + rules['start_minutes'] - dv
+                    break
+
+        logger.debug("******New daily duration is {}".format(daily_duration))
+
+    logger.debug("Start to check the daily fee")
+    for dk, dv in daily_duration.items():
+        if dk == min_date:
+            billing_time = check_fee(dv, flag=True & normal & order_flag, start_flag=True & normal & order_flag)
+        # 确认当天停车费用是否超过当天封顶金额
+        else:
+            billing_time = check_fee(dv, flag=False, start_flag=False)
+
+        if billing_time * entry_price >= rules['max_fee_per_day']:
+            total_fee += rules['max_fee_per_day']
+        else:
+            total_fee += billing_time * entry_price
 
     return total_fee, total_time, free_order

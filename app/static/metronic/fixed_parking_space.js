@@ -121,7 +121,7 @@ var DatatableRemoteAjaxDemo = function () {
                     overflow: 'visible',
                     width: 40,
                     template: function (row, index, datatable) {
-                        return '<a data-toggle="modal" data-target="#update_fixed_parking_record" onclick="editInfo(\'' + row.id + '\', \''  + row.number_plate + '\', \''  + row.specified_parking_space_code + '\', \''  + row.company + '\')" class="m-portlet__nav-link btn m-btn m-btn--hover-accent m-btn--icon m-btn--icon-only m-btn--pill" title="Edit details">\
+                        return '<a data-toggle="modal" data-target="#update_fixed_parking_record" onclick="editInfo(\'' + row.id + '\', \'' + row.number_plate + '\', \'' + row.specified_parking_space_code + '\', \'' + row.company + '\')" class="m-portlet__nav-link btn m-btn m-btn--hover-accent m-btn--icon m-btn--icon-only m-btn--pill" title="Edit details">\
                                     <i class="la la-edit"></i>\
                                 </a>\
                                 <a ' + 'onClick="return HTMerDel(\'' + row.id + '\')" class="m-portlet__nav-link btn m-btn m-btn--hover-danger m-btn--icon m-btn--icon-only m-btn--pill" title="Delete">\

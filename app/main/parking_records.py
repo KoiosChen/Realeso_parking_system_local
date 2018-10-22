@@ -46,7 +46,7 @@ def parking_records():
 
         logger.debug('pages from {} to {}, the total of the page is {}'.format(page_start, length, page_end))
 
-        if request.form.get('query[record_status]') or request.form.get('query[]') or request.form.get(
+        if request.form.get('query[record_status]') or request.form.get('query[search_content]') or request.form.get(
                 'query[search_date]'):
             logger.debug('searching content...')
             data = [{'id': pr.uuid,

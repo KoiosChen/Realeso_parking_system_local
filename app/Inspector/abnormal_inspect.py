@@ -7,8 +7,7 @@ def entry_inspect(number_plate):
     # 判断是否正常离场，若未正常离场，则不允许进入，需要人工干预
     abnormal_flag = ParkingRecords.query.filter(
         ParkingRecords.number_plate.__eq__(number_plate),
-        or_(ParkingRecords.status.__eq__(0),
-            ParkingRecords.exit_time.is_(None))).order_by(ParkingRecords.create_time.desc()).first()
+        ParkingRecords.status.__eq__(0)).order_by(ParkingRecords.create_time.desc()).first()
 
     if abnormal_flag:
         logger.info(

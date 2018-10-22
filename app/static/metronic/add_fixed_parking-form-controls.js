@@ -89,7 +89,7 @@ var FormControls = function () {
 
             //display error alert on form submit
             invalidHandler: function (event, validator) {
-                var alert = $('#m_form_update_msg');
+                let alert = $('#m_form_update_msg');
                 alert.removeClass('m--hide').show();
                 mApp.scrollTo(alert, -200);
             },
@@ -123,7 +123,7 @@ var FormControls = function () {
                             $('#update_fixed_parking_record').modal('hide')
                         }
                         else {
-                            toastr.warn(msg.content);
+                            toastr.warning(msg.content);
                             $('#update_fixed_parking_record').modal('hide')
                         }
                     },

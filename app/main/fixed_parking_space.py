@@ -139,17 +139,21 @@ def add_fixed_parking_record():
 
     logger.debug('add fixed parking record: {}'.format(str(data)))
 
-    if not FixedParkingSpace.query.join(ParkingOrder).filter(ParkingOrder.number_plate.__eq__(new_plate_number),
-                                                             ParkingOrder.status.__eq__(1),
-                                                             FixedParkingSpace.status.__eq__(1),
-                                                             or_(and_(ParkingOrder.order_validate_start.__le__(
-                                                                 start_time),
-                                                                 ParkingOrder.order_validate_stop.__le__(
-                                                                     stop_time)),
-                                                                 and_(ParkingOrder.order_validate_start.__ge__(
-                                                                     start_time),
-                                                                     ParkingOrder.order_validate_stop.__ge__(
-                                                                         stop_time)))).first():
+    old_fixed_order_by_number_plate = FixedParkingSpace.query.join(ParkingOrder).filter(
+        ParkingOrder.number_plate.__eq__(new_plate_number),
+        ParkingOrder.status.__eq__(1),
+        FixedParkingSpace.status.__eq__(1)).first()
+
+    old_fixed_order = FixedParkingSpace.query.join(ParkingOrder).filter(
+        ParkingOrder.number_plate.__eq__(new_plate_number),
+        ParkingOrder.status.__eq__(1),
+        FixedParkingSpace.status.__eq__(1),
+        or_(ParkingOrder.order_validate_stop.__lt__(
+            start_time),
+            ParkingOrder.order_validate_start.__gt__(
+                stop_time))).first()
+
+    if old_fixed_order_by_number_plate and not old_fixed_order:
         return jsonify({'status': 'false', 'content': "新固定车位增加失败，时间段重复"})
 
     try:
@@ -157,7 +161,7 @@ def add_fixed_parking_record():
         new_order = ParkingOrder(uuid=new_uuid,
                                  number_plate=new_plate_number.upper(),
                                  order_validate_start=start_time,
-                                 order_validate_stop=stop_time,
+                                 order_validate_stop=stop_time + timedelta(hours=23, minutes=59, seconds=59),
                                  status=1,
                                  order_type=1,
                                  reserved=1,
@@ -251,7 +255,7 @@ def fixed_parking_record_update():
         record_tobe_updated.fixed_order.order_validate_start = start_time
         flag = True
     if update_dateTimeRange and stop_time != record_tobe_updated.fixed_order.order_validate_stop:
-        record_tobe_updated.fixed_order.order_validate_stop = stop_time
+        record_tobe_updated.fixed_order.order_validate_stop = stop_time  + timedelta(hours=23, minutes=59, seconds=59)
         flag = True
 
     if flag:
