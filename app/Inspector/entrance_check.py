@@ -31,10 +31,14 @@ def record_parking(parking_info, parking_type):
 
         current_remaining_parking_space, temporary_for_reserved_plates = logically_free_parking_space(
             parking_lot_info.parking_lot_id)
-        if current_remaining_parking_space <= 0:
-            LED_char_show(device.led_id, '车位已满', 60)
-        elif temporary_for_reserved_plates <= 0:
-            LED_char_show(device.led_id, '车位已满', 60)
+        try:
+            if current_remaining_parking_space <= 0:
+                LED_char_show(device.led_id, '车位已满', 60)
+            elif temporary_for_reserved_plates <= 0:
+                LED_char_show(device.led_id, '车位已满', 60)
+        except Exception as e:
+            logger.error('show char on led fail')
+            pass
 
         return {'status': True, 'content': PARKING_TYPE[parking_type] + '车辆入场', 'data': {'uuid': record_id}}
     except Exception as e:

@@ -22,7 +22,8 @@ def logically_free_parking_space(parking_lot_id):
     car_parking_plates = [plates.number_plate for plates in
                           ParkingRecords.query.filter(ParkingRecords.status.__eq__(0)).all()]
 
-    reserved_plates = [plates.number_plate for plates in ParkingOrder.query.filter(ParkingOrder.reserved.__eq__(1),
+    reserved_plates = [plates.number_plate for plates in ParkingOrder.query.filter(ParkingOrder.order_type.__ne__(1),
+                                                                                   ParkingOrder.reserved.__eq__(1),
                                                                                    ParkingOrder.order_validate_start.__le__(
                                                                                        datetime.now()),
                                                                                    ParkingOrder.order_validate_stop.__ge__(
